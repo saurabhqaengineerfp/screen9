@@ -64,5 +64,70 @@
 }
 
 .loginBtn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255,255,255,0.1);
+  color: white;
+}
+
+/* Categories Dropdown */
+.dropdownContainer {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdownTrigger {
+  background: none;
+  border: none;
+  color: #ccc;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  transition: color 0.2s;
+}
+
+.dropdownTrigger:hover, .dropdownContainer:hover .dropdownTrigger {
+  color: white;
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: rgba(10, 10, 10, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 122, 0, 0.2);
+  border-radius: 8px;
+  min-width: 200px;
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  z-index: 100;
+}
+
+.dropdownContainer:hover .dropdownMenu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.dropdownItem {
+  color: #ccc;
+  padding: 10px 20px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.dropdownItem:hover {
+  background: rgba(255, 122, 0, 0.1);
+  color: #FF7A00;
 }

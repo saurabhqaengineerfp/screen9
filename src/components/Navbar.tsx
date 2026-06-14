@@ -2,10 +2,12 @@ import Link from 'next/link';
 import { Film } from 'lucide-react';
 import styles from './Navbar.module.css';
 import { createClient } from '@/utils/supabase/server';
+import CategoriesDropdown from './CategoriesDropdown';
 
 export default async function Navbar() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  const { data: categories } = await supabase.from('categories').select('id, name').order('name');
 
   return (
     <nav className={styles.navbar}>
@@ -17,6 +19,7 @@ export default async function Navbar() {
       <div className={styles.navLinks}>
         <Link href="/" className={styles.link}>Home</Link>
         <Link href="/movies" className={styles.link}>Movies</Link>
+        <CategoriesDropdown categories={categories || []} />
         {user && <Link href="/watchlist" className={styles.link}>My List</Link>}
       </div>
 

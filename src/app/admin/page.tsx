@@ -19,5 +19,10 @@ export default async function AdminPage() {
     .select('id, title, release_year')
     .order('created_at', { ascending: false });
 
-  return <AdminClient initialMovies={movies || []} />;
+  const { data: categories } = await supabase
+    .from('categories')
+    .select('id, name')
+    .order('name', { ascending: true });
+
+  return <AdminClient initialMovies={movies || []} initialCategories={categories || []} />;
 }

@@ -85,4 +85,14 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
 
+-- Create Categories table
+create table public.categories (
+  id uuid default gen_random_uuid() primary key,
+  name text not null unique,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
 
+-- Categories RLS
+alter table public.categories enable row level security;
+create policy "Categories are viewable by everyone." on public.categories for select using (true);
+-- Note: Insert/Update/Delete will be handled via Service Role in server actions

@@ -5,11 +5,13 @@ import { addMovie, deleteMovie } from "./actions";
 import styles from "./admin.module.css";
 import { Trash2 } from "lucide-react";
 
-export default function AdminClient({ initialMovies }: { initialMovies: any[] }) {
+export default function AdminClient({ initialMovies, initialCategories }: { initialMovies: any[], initialCategories: any[] }) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [movies, setMovies] = useState(initialMovies);
+  const [categories, setCategories] = useState(initialCategories);
+  const [catLoading, setCatLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -30,6 +32,42 @@ export default function AdminClient({ initialMovies }: { initialMovies: any[] })
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAddCategory = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setCatLoading(true);
+    setMessage("");
+    setError("");
+
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get("name") as string;
+    
+    try {
+      const res = await (await import("./actions")).addCategory(formData);
+      if (res?.success) {
+        setMessage(`Success! Added category "${res.name}".`);
+        // We'll optimistically add it. But we don't have the UUID. A full refresh or fetching it back is better.
+        // For now just ask to refresh, or just reload the page for simplicity:
+        window.location.reload();
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setCatLoading(false);
+    }
+  };
+
+  const handleDeleteCategory = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete category "${name}"?`)) return;
+    
+    try {
+      await (await import("./actions")).deleteCategory(id);
+      setCategories(categories.filter(c => c.id !== id));
+      setMessage(`Deleted category "${name}"`);
+    } catch (err: any) {
+      setError(err.message);
     }
   };
 
@@ -75,10 +113,13 @@ export default function AdminClient({ initialMovies }: { initialMovies: any[] })
           <div className={styles.inputGroup}>
             <label>Category</label>
             <select name="category">
-              <option value="Trending">Trending</option>
-              <option value="Sci-Fi Essentials">Sci-Fi Essentials</option>
-              <option value="Action Blockbusters">Action Blockbusters</option>
-              <option value="Indian Masterpieces">Indian Masterpieces</option>
+              {categories.length === 0 ? (
+                <option value="Trending">Trending (Fallback)</option>
+              ) : (
+                categories.map(cat => (
+                  <option key={cat.id} value={cat.name}>{cat.name}</option>
+                ))
+              )}
             </select>
           </div>
 
@@ -107,6 +148,46 @@ export default function AdminClient({ initialMovies }: { initialMovies: any[] })
                   onClick={() => handleDelete(movie.id, movie.title)}
                   className={styles.deleteBtn}
                   title="Delete Movie"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <hr style={{ borderColor: 'rgba(255,255,255,0.1)', margin: '40px 0' }} />
+
+        <h2 className={styles.title} style={{ fontSize: '1.5rem', marginBottom: '20px' }}>Manage Categories</h2>
+        
+        <form onSubmit={handleAddCategory} className={styles.form} style={{ marginBottom: '20px', flexDirection: 'row', alignItems: 'flex-end', gap: '10px' }}>
+          <div className={styles.inputGroup} style={{ flex: 1, margin: 0 }}>
+            <label>New Category Name</label>
+            <input 
+              name="name" 
+              type="text" 
+              placeholder="e.g. Action Blockbusters" 
+              required 
+            />
+          </div>
+          <button type="submit" disabled={catLoading} className={styles.button} style={{ padding: '12px 24px', width: 'auto' }}>
+            {catLoading ? "Adding..." : "Add"}
+          </button>
+        </form>
+
+        {categories.length === 0 ? (
+          <p style={{ color: '#888' }}>No categories in database.</p>
+        ) : (
+          <div className={styles.movieList}>
+            {categories.map(cat => (
+              <div key={cat.id} className={styles.movieItem}>
+                <div>
+                  <strong>{cat.name}</strong>
+                </div>
+                <button 
+                  onClick={() => handleDeleteCategory(cat.id, cat.name)}
+                  className={styles.deleteBtn}
+                  title="Delete Category"
                 >
                   <Trash2 size={18} />
                 </button>

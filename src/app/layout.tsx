@@ -7,6 +7,8 @@ export const metadata: Metadata = {
   description: "Your ultimate destination for cinematic masterpieces.",
 };
 
+import ConditionalNavbar from "@/components/ConditionalNavbar";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -15,7 +17,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning>
-        <Navbar />
+        <ConditionalNavbar>
+          <Navbar />
+        </ConditionalNavbar>
         {children}
       </body>
     </html>

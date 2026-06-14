@@ -115,3 +115,25 @@ export async function deleteMovie(id: string) {
   }
   return { success: true };
 }
+
+export async function addCategory(formData: FormData) {
+  const name = formData.get("name") as string;
+  if (!name) throw new Error("Category name is required");
+
+  const supabase = getAdminSupabase();
+  const { error } = await supabase.from('categories').insert({ name });
+  
+  if (error) {
+    throw new Error("Failed to add category: " + error.message);
+  }
+  return { success: true, name };
+}
+
+export async function deleteCategory(id: string) {
+  const supabase = getAdminSupabase();
+  const { error } = await supabase.from('categories').delete().eq('id', id);
+  if (error) {
+    throw new Error("Failed to delete category: " + error.message);
+  }
+  return { success: true };
+}
