@@ -1,0 +1,288 @@
+.playerContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: black;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.playerWrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.ytPlayer {
+  width: 100%;
+  height: 100%;
+}
+
+/* Make the YouTube iframe fill the container */
+.ytPlayer iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.reactPlayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* Invisible click target that covers the full screen for play/pause toggling */
+.clickArea {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  cursor: pointer;
+}
+
+/* Permanent covers to always hide YouTube branding (never fade out) */
+/* These sit BELOW the controls overlay (z-index 2 < overlay z-index 3) */
+.ytCoverTop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100px;
+  background: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.9) 40%, transparent 100%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.ytCoverBottomRight {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 90px;
+  background: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 50%, transparent 100%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Overlay for controls — sits above the click area */
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: opacity 0.4s ease;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.85) 0%,
+    rgba(0,0,0,0.3) 8%,
+    transparent 15%,
+    transparent 80%,
+    rgba(0,0,0,0.4) 90%,
+    rgba(0,0,0,0.9) 100%
+  );
+  pointer-events: none;
+}
+
+.visible {
+  opacity: 1;
+}
+
+.hidden {
+  opacity: 0;
+  pointer-events: none !important;
+}
+
+/* Only specific interactive children get pointer-events */
+.topBar {
+  padding: 30px 40px;
+  display: flex;
+  align-items: center;
+}
+
+.backBtn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform 0.2s;
+}
+.backBtn:hover {
+  transform: scale(1.1);
+}
+
+.centerDetails {
+  padding: 0 80px;
+  max-width: 800px;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+  pointer-events: none;
+}
+.movieTitle {
+  font-size: 3rem;
+  margin-bottom: 20px;
+}
+.movieDesc {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.9);
+  margin-bottom: 30px;
+}
+
+.bigPlayBtn {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 3px solid white;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(8px);
+  color: white;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s;
+}
+.bigPlayBtn:hover {
+  transform: scale(1.1);
+  background: rgba(229, 9, 20, 0.6);
+}
+
+/* Netflix-style "Click to Unmute" pill */
+.unmuteBtn {
+  position: absolute;
+  top: 30px;
+  right: 40px;
+  z-index: 10;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,0.4);
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(12px);
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  animation: pulse 2s ease-in-out infinite;
+}
+.unmuteBtn:hover {
+  background: rgba(229, 9, 20, 0.5);
+  border-color: rgba(229, 9, 20, 0.8);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.bottomControls {
+  padding: 0 40px 40px;
+  pointer-events: auto;
+}
+
+.progressBarContainer {
+  width: 100%;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.timeDisplay {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.8);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.seekSlider {
+  width: 100%;
+  cursor: pointer;
+  accent-color: #E50914;
+  height: 4px;
+}
+.seekSlider:hover {
+  height: 6px;
+}
+
+.controlsRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.leftControls, .rightControls {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.iconBtn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, transform 0.2s;
+}
+.iconBtn:hover {
+  color: #E50914;
+  transform: scale(1.1);
+}
+
+.volumeGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.volumeSlider {
+  width: 80px;
+  cursor: pointer;
+  accent-color: white;
+  height: 4px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.volumeGroup:hover .volumeSlider {
+  opacity: 1;
+}
+
+.titleText {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-left: 10px;
+}
+
+.textBtn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.textBtn:hover {
+  color: #E50914;
+}

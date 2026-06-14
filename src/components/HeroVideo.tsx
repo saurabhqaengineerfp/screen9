@@ -4,7 +4,7 @@ import { useState, useRef } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
 import styles from '@/app/page.module.css';
 
-export default function HeroVideo() {
+export default function HeroVideo({ videoUrl }: { videoUrl?: string }) {
   const [isMuted, setIsMuted] = useState(true);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -19,12 +19,20 @@ export default function HeroVideo() {
     }
   };
 
+  const defaultVideo = "https://www.youtube.com/embed/U2Qp5pL3ovA?autoplay=1&mute=1&controls=0&loop=1&playlist=U2Qp5pL3ovA&showinfo=0&modestbranding=1&playsinline=1&enablejsapi=1";
+  
+  // ensure JS API is enabled on whatever URL is passed
+  let finalUrl = videoUrl || defaultVideo;
+  if (finalUrl !== defaultVideo && !finalUrl.includes('enablejsapi=1')) {
+    finalUrl += finalUrl.includes('?') ? '&enablejsapi=1' : '?enablejsapi=1';
+  }
+
   return (
     <>
       <iframe
         ref={iframeRef}
         className={styles.backdropVideo}
-        src="https://www.youtube.com/embed/U2Qp5pL3ovA?autoplay=1&mute=1&controls=0&loop=1&playlist=U2Qp5pL3ovA&showinfo=0&modestbranding=1&playsinline=1&enablejsapi=1"
+        src={finalUrl}
         allow="autoplay; encrypted-media"
         title="Dune Part Two Trailer"
       ></iframe>

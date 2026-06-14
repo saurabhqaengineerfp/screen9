@@ -3,52 +3,60 @@ import Link from "next/link";
 import { Play, Info } from "lucide-react";
 import styles from "./page.module.css";
 import HeroVideo from "@/components/HeroVideo";
+import { createClient } from "@/utils/supabase/server";
 
-export default function Home() {
-  // Mock data since database is pending connection
-  const featuredMovie = {
+export const dynamic = 'force-dynamic';
+
+export default async function Home() {
+  const supabase = await createClient();
+  
+  // Fetch movies from DB
+  const { data: dbMovies } = await supabase
+    .from('movies')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  const trendingMovies = dbMovies || [];
+
+  // Use the most recent movie as the Hero, fallback to Dune if DB is empty
+  const heroMovie = trendingMovies.length > 0 ? trendingMovies[0] : {
     title: "Dune: Part Two",
     description: "Paul Atreides unites with Chani and the Fremen while on a warpath of revenge against the conspirators who destroyed his family.",
-    backdrop_url: "https://image.tmdb.org/t/p/original/1XDDXPXGiI8id7MrUxK36ke7wow.jpg",
-    genres: ["Science Fiction", "Adventure"]
+    video_url: null,
+    genres: ["Science Fiction", "Adventure"],
+    release_year: 2024,
+    content_rating: "PG-13",
+    runtime: 166
   };
-
-  const trendingMovies = [
-    { id: 1, title: "Oppenheimer", poster: "https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg" },
-    { id: 2, title: "Interstellar", poster: "https://image.tmdb.org/t/p/w500/rAiYTfKGqDCRIIqo664sY9XZIvQ.jpg" },
-    { id: 3, title: "Inception", poster: "https://image.tmdb.org/t/p/w500/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg" },
-    { id: 4, title: "The Dark Knight", poster: "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg" },
-    { id: 5, title: "Blade Runner 2049", poster: "https://image.tmdb.org/t/p/w500/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg" },
-  ];
 
   return (
     <main className={styles.main}>
       {/* Hero Section */}
       <section className={styles.hero}>
         <div className={styles.heroBackground}>
-          <HeroVideo />
+          <HeroVideo videoUrl={heroMovie.video_url || undefined} />
         </div>
         
         <div className={styles.heroContent}>
           <div className={`animate-fade-in ${styles.heroInfo}`}>
-            <h1 className={styles.title}>{featuredMovie.title}</h1>
+            <h1 className={styles.title}>{heroMovie.title}</h1>
             <div className={styles.meta}>
               <span className={styles.match}>98% Match</span>
-              <span>2024</span>
-              <span className={styles.rating}>PG-13</span>
-              <span>2h 46m</span>
+              <span>{heroMovie.release_year}</span>
+              {heroMovie.content_rating && <span className={styles.rating}>{heroMovie.content_rating}</span>}
+              {heroMovie.runtime && <span>{Math.floor(heroMovie.runtime / 60)}h {heroMovie.runtime % 60}m</span>}
             </div>
-            <p className={styles.description}>{featuredMovie.description}</p>
+            <p className={styles.description}>{heroMovie.description}</p>
             
             <div className={styles.genres}>
-              {featuredMovie.genres.map(g => <span key={g}>{g}</span>)}
+              {heroMovie.genres?.slice(0, 3).map((g: string) => <span key={g}>{g}</span>)}
             </div>
 
             <div className={styles.actions}>
-              <button className={`btn-primary ${styles.playBtn}`}>
+              <Link href={heroMovie.id ? `/watch/${heroMovie.id}` : '#'} className={`btn-primary ${styles.playBtn}`}>
                 <Play fill="currentColor" size={20} />
                 Play Now
-              </button>
+              </Link>
               <button className={styles.infoBtn}>
                 <Info size={20} />
                 More Info
@@ -61,14 +69,31 @@ export default function Home() {
       {/* Rows Section */}
       <section className={styles.rowsContainer}>
         <div className={styles.row}>
-          <h2 className={styles.rowTitle}>Trending Now</h2>
-          <div className={styles.cardsScroll}>
-            {trendingMovies.map((movie) => (
-              <div key={movie.id} className={styles.card}>
-                <img src={movie.poster} alt={movie.title} className={styles.poster} />
-              </div>
-            ))}
-          </div>
+          <h2 className={styles.rowTitle}>Recently Added</h2>
+          {trendingMovies.length === 0 ? (
+            <p style={{ color: 'rgba(255,255,255,0.6)', paddingLeft: '40px' }}>No movies in the database yet.</p>
+          ) : (
+            <div className={styles.cardsScroll}>
+              {trendingMovies.map((movie) => (
+                <Link href={`/watch/${movie.id}`} key={movie.id} className={styles.card}>
+                  {movie.poster_url ? (
+                    <Image 
+                      src={movie.poster_url} 
+                      alt={movie.title} 
+                      className={styles.poster}
+                      fill
+                      unoptimized
+                      style={{ objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <div style={{width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#333'}}>
+                      {movie.title}
+                    </div>
+                  )}
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </main>
