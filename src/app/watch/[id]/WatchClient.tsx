@@ -77,10 +77,10 @@ export default function WatchClient({ movie }: { movie: any }) {
             setTimeout(() => setShowDetails(false), 20000);
           },
           onStateChange: (event: any) => {
-            // YT.PlayerState: PLAYING=1, PAUSED=2, ENDED=0, BUFFERING=3
+            // YT.PlayerState: PLAYING=1, PAUSED=2, ENDED=0, BUFFERING=3, UNSTARTED=-1
             if (event.data === 1) {
               setPlaying(true);
-            } else if (event.data === 2) {
+            } else if (event.data === 2 || event.data === -1) {
               setPlaying(false);
             } else if (event.data === 0) {
               setPlaying(false);
