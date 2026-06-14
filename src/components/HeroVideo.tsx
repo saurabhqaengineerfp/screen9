@@ -12,7 +12,7 @@ function extractYouTubeId(url: string): string | null {
   return null;
 }
 
-export default function HeroVideo({ videoUrl }: { videoUrl?: string }) {
+export default function HeroVideo({ movie }: { movie?: any }) {
   const [isMuted, setIsMuted] = useState(true);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -29,10 +29,14 @@ export default function HeroVideo({ videoUrl }: { videoUrl?: string }) {
 
   // Build a proper embed URL with mute=1 for autoplay compliance
   const fallbackId = "U2Qp5pL3ovA";
+  const videoUrl = movie?.trailer_url || movie?.video_url;
   const videoId = videoUrl ? extractYouTubeId(videoUrl) : fallbackId;
   const id = videoId || fallbackId;
 
-  const embedUrl = `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&controls=0&loop=1&playlist=${id}&showinfo=0&modestbranding=1&playsinline=1&enablejsapi=1`;
+  let embedUrl = `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&controls=0&loop=1&playlist=${id}&showinfo=0&modestbranding=1&playsinline=1&enablejsapi=1`;
+  
+  if (movie?.start_time) embedUrl += `&start=${movie.start_time}`;
+  if (movie?.end_time) embedUrl += `&end=${movie.end_time}`;
 
   return (
     <>

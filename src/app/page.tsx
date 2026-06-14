@@ -35,7 +35,7 @@ export default async function Home() {
       {/* Hero Section */}
       <section className={styles.hero}>
         <div className={styles.heroBackground}>
-          <HeroVideo videoUrl={heroMovie.video_url || undefined} />
+          <HeroVideo movie={heroMovie || undefined} />
         </div>
         
         <div className={styles.heroContent}>

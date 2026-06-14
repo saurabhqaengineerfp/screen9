@@ -16,7 +16,7 @@ export default async function AdminPage() {
   const supabase = await createClient();
   const { data: movies } = await supabase
     .from('movies')
-    .select('id, title, release_year')
+    .select('id, title, release_year, category, video_url, trailer_url, start_time, end_time')
     .order('created_at', { ascending: false });
 
   const { data: categories } = await supabase

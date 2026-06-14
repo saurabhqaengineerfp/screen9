@@ -46,20 +46,25 @@ export default function WatchClient({ movie }: { movie: any }) {
     if (!videoId) return;
 
     const createPlayer = () => {
+      const vars: any = {
+        controls: 0,
+        modestbranding: 1,
+        rel: 0,
+        showinfo: 0,
+        disablekb: 1,
+        iv_load_policy: 3,
+        fs: 0,
+        autoplay: 1,
+        playsinline: 1,
+        origin: window.location.origin,
+      };
+
+      if (movie.start_time) vars.start = movie.start_time;
+      if (movie.end_time) vars.end = movie.end_time;
+
       playerRef.current = new window.YT.Player("yt-player", {
         videoId,
-        playerVars: {
-          controls: 0,
-          modestbranding: 1,
-          rel: 0,
-          showinfo: 0,
-          disablekb: 1,
-          iv_load_policy: 3,
-          fs: 0,
-          autoplay: 1,
-          playsinline: 1,
-          origin: window.location.origin,
-        },
+        playerVars: vars,
         events: {
           onReady: (event: any) => {
             setReady(true);

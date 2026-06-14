@@ -23,6 +23,9 @@ create table public.movies (
   duration integer, -- in seconds
   cast_members text[], -- array of top cast members
   director text, -- director name
+  start_time integer,
+  end_time integer,
+  trailer_url text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
