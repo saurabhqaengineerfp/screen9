@@ -81,6 +81,13 @@ export default function WatchClient({ movie }: { movie: any }) {
             // YT.PlayerState: PLAYING=1, PAUSED=2, ENDED=0, BUFFERING=3, UNSTARTED=-1
             if (event.data === 1) {
               setPlaying(true);
+              // If YouTube internally muted the video as an autoplay fallback, unmute it when the user starts playback
+              if (event.target.isMuted()) {
+                event.target.unMute();
+                event.target.setVolume(100);
+                setMuted(false);
+                setVolume(100);
+              }
             } else if (event.data === 2 || event.data === -1) {
               setPlaying(false);
             } else if (event.data === 0) {
