@@ -71,7 +71,8 @@ export default function WatchClient({ movie }: { movie: any }) {
             setDuration(event.target.getDuration());
             event.target.setVolume(100);
             event.target.playVideo();
-            setPlaying(true);
+            // Do NOT set playing to true here! Wait for onStateChange to confirm it actually started playing.
+            // On iOS Safari, playVideo() is blocked silently, so playing should remain false.
 
             // Show movie details for 20 seconds on start, then fade out
             setTimeout(() => setShowDetails(false), 20000);
