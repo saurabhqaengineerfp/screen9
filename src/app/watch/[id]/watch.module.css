@@ -260,3 +260,40 @@
 .textBtn:hover {
   color: #FF7A00;
 }
+
+@media (max-width: 768px) {
+  .ytPlayer {
+    transform: scale(1.35);
+  }
+  .playerWrapper {
+    clip-path: inset(0 0 0 0);
+  }
+  .overlay {
+    background: linear-gradient(
+      to bottom,
+      rgba(0,0,0,1) 0%,
+      rgba(0,0,0,0.8) 20%,
+      transparent 40%,
+      transparent 70%,
+      rgba(0,0,0,0.8) 85%,
+      rgba(0,0,0,1) 100%
+    );
+  }
+  .centerDetails {
+    padding: 0 20px;
+    margin-top: 40px;
+  }
+  .movieTitle {
+    font-size: 2rem;
+  }
+  .movieDesc {
+    font-size: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;  
+    overflow: hidden;
+  }
+  .bigPlayBtn {
+    display: none; /* Hide our play button so they must tap the YouTube red button in the center */
+  }
+}

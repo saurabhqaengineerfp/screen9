@@ -253,12 +253,19 @@ export default function WatchClient({ movie }: { movie: any }) {
       onMouseMove={handleMouseMove}
     >
       {/* YouTube player renders into this div */}
-      <div className={styles.playerWrapper}>
+      <div 
+        className={styles.playerWrapper}
+        style={{ pointerEvents: playing ? 'none' : 'auto' }}
+      >
         <div id="yt-player" className={styles.ytPlayer} />
       </div>
 
       {/* Click-to-play/pause area */}
-      <div className={styles.clickArea} onClick={togglePlay} />
+      <div 
+        className={styles.clickArea} 
+        onClick={togglePlay} 
+        style={{ pointerEvents: playing ? 'auto' : 'none' }}
+      />
 
       {/* Overlay UI */}
       <div className={`${styles.overlay} ${showUI ? styles.visible : styles.hidden}`}>
