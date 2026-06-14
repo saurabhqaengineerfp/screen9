@@ -1,6 +1,13 @@
 "use server";
 
-import { createClient } from "@/utils/supabase/server";
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+
+const getAdminSupabase = () => {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) throw new Error("Missing Supabase URL or SUPABASE_SERVICE_ROLE_KEY in .env.local");
+  return createSupabaseClient(url, key);
+};
 
 export async function addMovie(formData: FormData) {
   const tmdbUrl = formData.get("tmdbUrl") as string;
@@ -42,15 +49,21 @@ export async function addMovie(formData: FormData) {
   const tmdbKey = process.env.NEXT_PUBLIC_TMDB_API_KEY;
   if (!tmdbKey) throw new Error("TMDB API key is missing in .env.local");
 
-  // Fetch full details from TMDB
-  const detailsRes = await fetch(`https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${tmdbKey}`);
+  // Fetch full details from TMDB including credits (cast and crew)
+  const detailsRes = await fetch(`https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${tmdbKey}&append_to_response=credits`);
   const detailsData = await detailsRes.json();
 
   if (detailsData.success === false) {
     throw new Error("TMDB Error: " + detailsData.status_message);
   }
 
-  const supabase = await createClient();
+  const supabase = getAdminSupabase();
+  
+  // Extract Director
+  const director = detailsData.credits?.crew?.find((person: any) => person.job === 'Director')?.name || null;
+  
+  // Extract top 5 Cast Members
+  const castMembers = detailsData.credits?.cast?.slice(0, 5).map((person: any) => person.name) || [];
   
   const { error } = await supabase.from('movies').insert({
     title: detailsData.title,
@@ -63,7 +76,9 @@ export async function addMovie(formData: FormData) {
     video_source_type: videoSourceType,
     video_url: cleanVideoUrl,
     tmdb_id: parseInt(tmdbId),
-    duration: (detailsData.runtime || 120) * 60 // convert minutes to seconds
+    duration: (detailsData.runtime || 120) * 60, // convert minutes to seconds
+    director: director,
+    cast_members: castMembers
   });
 
   if (error) {
@@ -72,4 +87,31 @@ export async function addMovie(formData: FormData) {
   }
 
   return { success: true, title: detailsData.title };
+}
+
+export async function loginAdmin(password: string) {
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminPassword) throw new Error("Admin password not set in environment");
+
+  if (password === adminPassword) {
+    const { cookies } = await import("next/headers");
+    const cookieStore = await cookies();
+    cookieStore.set("admin_auth", "true", { 
+      httpOnly: true, 
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 24 * 30 // 30 days
+    });
+    return { success: true };
+  } else {
+    throw new Error("Invalid password");
+  }
+}
+
+export async function deleteMovie(id: string) {
+  const supabase = getAdminSupabase();
+  const { error } = await supabase.from('movies').delete().eq('id', id);
+  if (error) {
+    throw new Error("Failed to delete movie: " + error.message);
+  }
+  return { success: true };
 }

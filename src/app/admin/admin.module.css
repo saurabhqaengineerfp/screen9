@@ -101,3 +101,35 @@
   border-radius: 6px;
   border: 1px solid rgba(244, 63, 94, 0.3);
 }
+
+.movieList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.movieItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+}
+
+.deleteBtn {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.4);
+  cursor: pointer;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
+
+.deleteBtn:hover {
+  color: #ef4444;
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { ArrowLeft, Play, Pause, FastForward, Rewind, Maximize, Volume2, VolumeX, Settings } from "lucide-react";
+import { ArrowLeft, Play, Pause, FastForward, Rewind, Maximize, Volume2, VolumeX } from "lucide-react";
 import { useRouter } from "next/navigation";
 import styles from "./watch.module.css";
 
@@ -28,12 +28,13 @@ export default function WatchClient({ movie }: { movie: any }) {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const [playing, setPlaying] = useState(false);
-  const [muted, setMuted] = useState(true);
+  const [muted, setMuted] = useState(false);
   const [volume, setVolume] = useState(100);
   const [played, setPlayed] = useState(0);
   const [duration, setDuration] = useState(0);
   const [ready, setReady] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
+  const [showDetails, setShowDetails] = useState(true);
 
   const [showUI, setShowUI] = useState(true);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -56,7 +57,6 @@ export default function WatchClient({ movie }: { movie: any }) {
           iv_load_policy: 3,
           fs: 0,
           autoplay: 1,
-          mute: 1,
           playsinline: 1,
           origin: window.location.origin,
         },
@@ -64,8 +64,12 @@ export default function WatchClient({ movie }: { movie: any }) {
           onReady: (event: any) => {
             setReady(true);
             setDuration(event.target.getDuration());
+            event.target.setVolume(100);
             event.target.playVideo();
             setPlaying(true);
+
+            // Show movie details for 20 seconds on start, then fade out
+            setTimeout(() => setShowDetails(false), 20000);
           },
           onStateChange: (event: any) => {
             // YT.PlayerState: PLAYING=1, PAUSED=2, ENDED=0, BUFFERING=3
@@ -177,14 +181,7 @@ export default function WatchClient({ movie }: { movie: any }) {
     playerRef.current.seekTo(cur + 10, true);
   };
 
-  const handleUnmute = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (playerRef.current) {
-      playerRef.current.unMute();
-      playerRef.current.setVolume(volume);
-    }
-    setMuted(false);
-  };
+
 
   const toggleMute = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -257,10 +254,6 @@ export default function WatchClient({ movie }: { movie: any }) {
       {/* Click-to-play/pause area */}
       <div className={styles.clickArea} onClick={togglePlay} />
 
-      {/* Permanent covers to hide YouTube branding (always visible, even when controls fade) */}
-      <div className={styles.ytCoverTop} />
-      <div className={styles.ytCoverBottomRight} />
-
       {/* Overlay UI */}
       <div className={`${styles.overlay} ${showUI ? styles.visible : styles.hidden}`}>
         <div className={styles.topBar}>
@@ -269,21 +262,26 @@ export default function WatchClient({ movie }: { movie: any }) {
           </button>
         </div>
 
-        {!playing && ready && (
-          <div className={styles.centerDetails}>
+        {(showDetails || !playing) && ready && (
+          <div className={`${styles.centerDetails} ${showDetails && playing ? styles.detailsFadeOut : ''}`}>
             <h1 className={styles.movieTitle}>{movie.title}</h1>
+            
+            {(movie.director || (movie.cast_members && movie.cast_members.length > 0)) && (
+              <div className={styles.creditsContainer}>
+                {movie.director && <p className={styles.creditLine}><strong>Director:</strong> {movie.director}</p>}
+                {movie.cast_members && movie.cast_members.length > 0 && (
+                  <p className={styles.creditLine}><strong>Starring:</strong> {movie.cast_members.join(', ')}</p>
+                )}
+              </div>
+            )}
+            
             <p className={styles.movieDesc}>{movie.description}</p>
-            <button className={styles.bigPlayBtn} onClick={handlePlayPause}>
-              <Play fill="white" size={48} />
-            </button>
+            {!playing && (
+              <button className={styles.bigPlayBtn} onClick={handlePlayPause}>
+                <Play fill="white" size={48} />
+              </button>
+            )}
           </div>
-        )}
-
-        {muted && playing && (
-          <button className={styles.unmuteBtn} onClick={handleUnmute}>
-            <VolumeX size={20} />
-            <span>Click to Unmute</span>
-          </button>
         )}
 
         <div className={styles.bottomControls} onClick={(e) => e.stopPropagation()}>
@@ -334,9 +332,6 @@ export default function WatchClient({ movie }: { movie: any }) {
             <div className={styles.rightControls}>
               <button className={styles.textBtn} onClick={handlePlaybackRate}>
                 {playbackRate}x
-              </button>
-              <button className={styles.iconBtn}>
-                <Settings size={24} />
               </button>
               <button onClick={toggleFullscreen} className={styles.iconBtn}>
                 <Maximize size={24} />

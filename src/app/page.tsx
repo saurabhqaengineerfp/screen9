@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Play, Info } from "lucide-react";
 import styles from "./page.module.css";
 import HeroVideo from "@/components/HeroVideo";
+import MoreInfoModal from "@/components/MoreInfoModal";
 import { createClient } from "@/utils/supabase/server";
 
 export const dynamic = 'force-dynamic';
@@ -41,7 +42,7 @@ export default async function Home() {
           <div className={`animate-fade-in ${styles.heroInfo}`}>
             <h1 className={styles.title}>{heroMovie.title}</h1>
             <div className={styles.meta}>
-              <span className={styles.match}>98% Match</span>
+              <span className={styles.match}>Trending Now</span>
               <span>{heroMovie.release_year}</span>
               {heroMovie.content_rating && <span className={styles.rating}>{heroMovie.content_rating}</span>}
               {heroMovie.runtime && <span>{Math.floor(heroMovie.runtime / 60)}h {heroMovie.runtime % 60}m</span>}
@@ -57,10 +58,7 @@ export default async function Home() {
                 <Play fill="currentColor" size={20} />
                 Play Now
               </Link>
-              <button className={styles.infoBtn}>
-                <Info size={20} />
-                More Info
-              </button>
+              <MoreInfoModal movie={heroMovie} />
             </div>
           </div>
         </div>

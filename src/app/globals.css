@@ -3,9 +3,9 @@
 :root {
   --background: #050505;
   --foreground: #fcfcfc;
-  --primary: #6d28d9;
-  --primary-hover: #7c3aed;
-  --accent: #f43f5e;
+  --primary: #FF7A00;
+  --primary-hover: #FF8C22;
+  --accent: #FF5A00;
   --surface: rgba(255, 255, 255, 0.03);
   --surface-hover: rgba(255, 255, 255, 0.08);
   --border: rgba(255, 255, 255, 0.1);
@@ -57,12 +57,12 @@ button {
   border-radius: 8px;
   font-weight: 600;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 4px 14px rgba(109, 40, 217, 0.4);
+  box-shadow: 0 4px 14px rgba(255, 122, 0, 0.4);
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(109, 40, 217, 0.6);
+  box-shadow: 0 6px 20px rgba(255, 122, 0, 0.6);
 }
 
 .input-field {

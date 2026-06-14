@@ -21,6 +21,8 @@ create table public.movies (
   video_url text not null, -- The youtube link or the Cloudflare R2 native link
   tmdb_id integer, -- To fetch additional data later if needed
   duration integer, -- in seconds
+  cast_members text[], -- array of top cast members
+  director text, -- director name
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
