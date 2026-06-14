@@ -3,6 +3,7 @@ import { Film } from 'lucide-react';
 import styles from './Navbar.module.css';
 import { createClient } from '@/utils/supabase/server';
 import CategoriesDropdown from './CategoriesDropdown';
+import SearchBar from './SearchBar';
 
 export default async function Navbar() {
   const supabase = await createClient();
@@ -13,7 +14,7 @@ export default async function Navbar() {
     <nav className={styles.navbar}>
       <Link href="/" className={styles.brand}>
         <Film size={28} color="#6d28d9" />
-        Screen<span>9</span>
+        <div>Screen<span>9</span></div>
       </Link>
       
       <div className={styles.navLinks}>
@@ -24,6 +25,7 @@ export default async function Navbar() {
       </div>
 
       <div className={styles.actions}>
+        <SearchBar />
         {user ? (
           <form action="/auth/signout" method="post">
             <button type="submit" className={styles.loginBtn}>Sign Out</button>

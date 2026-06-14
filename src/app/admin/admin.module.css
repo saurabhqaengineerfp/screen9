@@ -228,3 +228,42 @@
 .deleteBtn:hover {
   color: #ef4444;
 }
+
+@media (max-width: 768px) {
+  .dashboard {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding: 20px;
+  }
+
+  .brand {
+    margin-bottom: 20px;
+    justify-content: center;
+  }
+
+  .tabButton {
+    text-align: center;
+    justify-content: center;
+  }
+
+  .mainContent {
+    padding: 20px;
+  }
+
+  .card {
+    padding: 20px;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .form > div[style] {
+    flex-direction: column;
+  }
+}

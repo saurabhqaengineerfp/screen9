@@ -222,3 +222,40 @@
   height: 100%;
   object-fit: cover;
 }
+
+@media (max-width: 768px) {
+  .hero {
+    padding: 100px 16px 80px 16px;
+    min-height: 100vh;
+    height: auto;
+  }
+  .heroContent {
+    margin-top: 0;
+  }
+  .title {
+    font-size: 2.2rem;
+    word-wrap: break-word;
+  }
+  .description {
+    font-size: 0.95rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;  
+    overflow: hidden;
+  }
+  .actions {
+    flex-direction: column;
+  }
+  .playBtn, .infoBtn {
+    width: 100%;
+    justify-content: center;
+  }
+  .rowsContainer {
+    padding: 0 16px;
+    margin-top: -40px;
+  }
+  .card {
+    min-width: 140px;
+    width: 140px;
+  }
+}

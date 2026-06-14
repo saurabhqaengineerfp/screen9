@@ -1,0 +1,137 @@
+.searchContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputWrapper {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid transparent;
+  border-radius: 20px;
+  padding: 6px 12px;
+  transition: all 0.2s ease;
+  width: 200px;
+}
+
+.inputWrapper.focused {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  width: 280px;
+}
+
+.searchIcon {
+  color: rgba(255, 255, 255, 0.5);
+  margin-right: 8px;
+}
+
+.searchInput {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 0.9rem;
+  width: 100%;
+  outline: none;
+}
+
+.searchInput::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 320px;
+  background: rgba(15, 15, 15, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 122, 0, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  overflow: hidden;
+  z-index: 200;
+}
+
+.message {
+  padding: 16px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.9rem;
+}
+
+.resultsList {
+  display: flex;
+  flex-direction: column;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.resultsList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.resultsList::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+}
+
+.resultItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background 0.2s;
+}
+
+.resultItem:last-child {
+  border-bottom: none;
+}
+
+.resultItem:hover {
+  background: rgba(255, 122, 0, 0.1);
+}
+
+.posterWrapper {
+  position: relative;
+  width: 40px;
+  height: 60px;
+  border-radius: 4px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #222;
+}
+
+.movieInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.movieTitle {
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.movieYear {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 768px) {
+  .inputWrapper {
+    width: 140px;
+    padding: 6px 10px;
+  }
+  
+  .inputWrapper.focused {
+    width: 200px;
+  }
+  
+  .dropdown {
+    width: 280px;
+  }
+}
