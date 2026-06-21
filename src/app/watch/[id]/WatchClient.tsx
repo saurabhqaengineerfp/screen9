@@ -66,6 +66,9 @@ export default function WatchClient({ movie }: { movie: any }) {
 
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
+      if (movie.start_time) {
+        videoRef.current.currentTime = movie.start_time;
+      }
       setDuration(videoRef.current.duration);
       // Auto-play might be blocked by browser policy without mute, but we try:
       videoRef.current.play().catch(() => {
@@ -177,6 +180,10 @@ export default function WatchClient({ movie }: { movie: any }) {
 
   // Render simple YouTube iframe
   if (isYouTube) {
+    let youtubeUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&rel=0&modestbranding=1`;
+    if (movie.start_time) youtubeUrl += `&start=${movie.start_time}`;
+    if (movie.end_time) youtubeUrl += `&end=${movie.end_time}`;
+
     return (
       <div className={styles.playerContainer} ref={containerRef}>
         <div className={styles.youtubeTopBar}>
@@ -185,7 +192,7 @@ export default function WatchClient({ movie }: { movie: any }) {
           </button>
         </div>
         <iframe
-          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&rel=0&modestbranding=1`}
+          src={youtubeUrl}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
           className={styles.nativeYoutubeIframe}
