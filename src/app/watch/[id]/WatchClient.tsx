@@ -5,14 +5,6 @@ import { ArrowLeft, Play, Pause, FastForward, Rewind, Maximize, Volume2, VolumeX
 import { useRouter } from "next/navigation";
 import styles from "./watch.module.css";
 
-// Extend window to include YouTube IFrame API types
-declare global {
-  interface Window {
-    YT: any;
-    onYouTubeIframeAPIReady: (() => void) | undefined;
-  }
-}
-
 function extractYouTubeId(url: string): string | null {
   if (!url) return null;
   if (url.includes("/embed/")) return url.split("/embed/")[1].split("?")[0];
@@ -24,118 +16,22 @@ function extractYouTubeId(url: string): string | null {
 export default function WatchClient({ movie }: { movie: any }) {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<any>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
   const [volume, setVolume] = useState(100);
   const [played, setPlayed] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [ready, setReady] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [showDetails, setShowDetails] = useState(true);
-
   const [showUI, setShowUI] = useState(true);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const videoId = extractYouTubeId(movie.video_url || "");
+  const isYouTube = !!videoId;
 
-  // Load YouTube IFrame API and create player
-  useEffect(() => {
-    if (!videoId) return;
-
-    const createPlayer = () => {
-      const vars: any = {
-        controls: 0,
-        modestbranding: 1,
-        rel: 0,
-        showinfo: 0,
-        disablekb: 1,
-        iv_load_policy: 3,
-        fs: 0,
-        autoplay: 1,
-        playsinline: 1,
-        origin: window.location.origin,
-      };
-
-      if (movie.start_time) vars.start = movie.start_time;
-      if (movie.end_time) vars.end = movie.end_time;
-
-      playerRef.current = new window.YT.Player("yt-player", {
-        videoId,
-        playerVars: vars,
-        events: {
-          onReady: (event: any) => {
-            setReady(true);
-            setDuration(event.target.getDuration());
-            event.target.setVolume(100);
-            event.target.playVideo();
-            // Do NOT set playing to true here! Wait for onStateChange to confirm it actually started playing.
-            // On iOS Safari, playVideo() is blocked silently, so playing should remain false.
-
-            // Show movie details for 20 seconds on start, then fade out
-            setTimeout(() => setShowDetails(false), 20000);
-          },
-          onStateChange: (event: any) => {
-            // YT.PlayerState: PLAYING=1, PAUSED=2, ENDED=0, BUFFERING=3, UNSTARTED=-1
-            if (event.data === 1) {
-              setPlaying(true);
-              // If YouTube internally muted the video as an autoplay fallback, unmute it when the user starts playback
-              if (event.target.isMuted()) {
-                event.target.unMute();
-                event.target.setVolume(100);
-                setMuted(false);
-                setVolume(100);
-              }
-            } else if (event.data === 2 || event.data === -1) {
-              setPlaying(false);
-            } else if (event.data === 0) {
-              setPlaying(false);
-              setPlayed(1);
-            }
-          },
-        },
-      });
-    };
-
-    if (window.YT && window.YT.Player) {
-      createPlayer();
-    } else {
-      // Load the API script
-      const tag = document.createElement("script");
-      tag.src = "https://www.youtube.com/iframe_api";
-      document.head.appendChild(tag);
-      window.onYouTubeIframeAPIReady = createPlayer;
-    }
-
-    return () => {
-      if (playerRef.current?.destroy) {
-        playerRef.current.destroy();
-      }
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [videoId]);
-
-  // Track progress while playing
-  useEffect(() => {
-    if (playing && ready) {
-      intervalRef.current = setInterval(() => {
-        if (playerRef.current?.getCurrentTime && playerRef.current?.getDuration) {
-          const current = playerRef.current.getCurrentTime();
-          const total = playerRef.current.getDuration();
-          if (total > 0) setPlayed(current / total);
-        }
-      }, 500);
-    } else {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    }
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [playing, ready]);
-
-  // Auto-hide UI
+  // Auto-hide UI (for HTML5 video)
   const handleMouseMove = useCallback(() => {
     setShowUI(true);
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -145,21 +41,54 @@ export default function WatchClient({ movie }: { movie: any }) {
   }, [playing]);
 
   useEffect(() => {
-    if (!playing) {
-      setShowUI(true);
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    } else {
-      handleMouseMove();
+    if (!isYouTube) {
+      if (!playing) {
+        setShowUI(true);
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      } else {
+        handleMouseMove();
+      }
     }
-  }, [playing, handleMouseMove]);
+  }, [playing, handleMouseMove, isYouTube]);
+
+  // Hide details after 20 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => setShowDetails(false), 20000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // HTML5 Video Event Handlers
+  const handleTimeUpdate = () => {
+    if (videoRef.current) {
+      setPlayed(videoRef.current.currentTime / (videoRef.current.duration || 1));
+    }
+  };
+
+  const handleLoadedMetadata = () => {
+    if (videoRef.current) {
+      setDuration(videoRef.current.duration);
+      // Auto-play might be blocked by browser policy without mute, but we try:
+      videoRef.current.play().catch(() => {
+        setPlaying(false);
+      });
+    }
+  };
+
+  const handleVideoPlay = () => setPlaying(true);
+  const handleVideoPause = () => setPlaying(false);
+  const handleVideoEnded = () => {
+    setPlaying(false);
+    setPlayed(1);
+  };
 
   // Player control handlers
   const togglePlay = () => {
-    if (!playerRef.current) return;
-    if (playing) {
-      playerRef.current.pauseVideo();
-    } else {
-      playerRef.current.playVideo();
+    if (videoRef.current) {
+      if (playing) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
     }
   };
 
@@ -175,50 +104,43 @@ export default function WatchClient({ movie }: { movie: any }) {
 
   const handleSeekMouseUp = (e: React.MouseEvent<HTMLInputElement>) => {
     const val = parseFloat((e.target as HTMLInputElement).value);
-    if (playerRef.current?.seekTo) {
-      playerRef.current.seekTo(val * duration, true);
+    if (videoRef.current) {
+      videoRef.current.currentTime = val * duration;
     }
   };
 
   const handleRewind = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!playerRef.current?.getCurrentTime) return;
-    const cur = playerRef.current.getCurrentTime();
-    playerRef.current.seekTo(Math.max(0, cur - 10), true);
+    if (videoRef.current) {
+      videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime - 10);
+    }
   };
 
   const handleFastForward = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!playerRef.current?.getCurrentTime) return;
-    const cur = playerRef.current.getCurrentTime();
-    playerRef.current.seekTo(cur + 10, true);
+    if (videoRef.current) {
+      videoRef.current.currentTime = Math.min(duration, videoRef.current.currentTime + 10);
+    }
   };
-
-
 
   const toggleMute = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!playerRef.current) return;
-    if (muted) {
-      playerRef.current.unMute();
-      playerRef.current.setVolume(volume);
-      setMuted(false);
-    } else {
-      playerRef.current.mute();
-      setMuted(true);
+    if (videoRef.current) {
+      videoRef.current.muted = !muted;
+      setMuted(!muted);
     }
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = parseFloat(e.target.value);
     setVolume(val);
-    if (playerRef.current) {
-      playerRef.current.setVolume(val);
+    if (videoRef.current) {
+      videoRef.current.volume = val / 100;
       if (val === 0) {
-        playerRef.current.mute();
+        videoRef.current.muted = true;
         setMuted(true);
       } else if (muted) {
-        playerRef.current.unMute();
+        videoRef.current.muted = false;
         setMuted(false);
       }
     }
@@ -228,8 +150,8 @@ export default function WatchClient({ movie }: { movie: any }) {
     e.stopPropagation();
     const newRate = playbackRate === 1 ? 1.5 : 1;
     setPlaybackRate(newRate);
-    if (playerRef.current?.setPlaybackRate) {
-      playerRef.current.setPlaybackRate(newRate);
+    if (videoRef.current) {
+      videoRef.current.playbackRate = newRate;
     }
   };
 
@@ -242,8 +164,8 @@ export default function WatchClient({ movie }: { movie: any }) {
     }
   };
 
-  // Format time for display
   const formatTime = (seconds: number) => {
+    if (isNaN(seconds)) return "0:00";
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     const s = Math.floor(seconds % 60);
@@ -253,28 +175,53 @@ export default function WatchClient({ movie }: { movie: any }) {
 
   const currentTime = played * duration;
 
+  // Render simple YouTube iframe
+  if (isYouTube) {
+    return (
+      <div className={styles.playerContainer} ref={containerRef}>
+        <div className={styles.youtubeTopBar}>
+          <button onClick={() => router.back()} className={styles.backBtn}>
+            <ArrowLeft size={32} />
+          </button>
+        </div>
+        <iframe
+          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&rel=0&modestbranding=1`}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          className={styles.nativeYoutubeIframe}
+        />
+      </div>
+    );
+  }
+
+  // Render custom HTML5 player
   return (
     <div
       className={styles.playerContainer}
       ref={containerRef}
       onMouseMove={handleMouseMove}
     >
-      {/* YouTube player renders into this div */}
-      <div 
-        className={styles.playerWrapper}
-        style={{ pointerEvents: playing ? 'none' : 'auto' }}
-      >
-        <div id="yt-player" className={styles.ytPlayer} />
+      <div className={styles.playerWrapper} style={{ pointerEvents: playing ? 'none' : 'auto' }}>
+        <video
+          ref={videoRef}
+          src={movie.video_url}
+          className={styles.htmlVideo}
+          onTimeUpdate={handleTimeUpdate}
+          onLoadedMetadata={handleLoadedMetadata}
+          onPlay={handleVideoPlay}
+          onPause={handleVideoPause}
+          onEnded={handleVideoEnded}
+          autoPlay
+          playsInline
+        />
       </div>
 
-      {/* Click-to-play/pause area */}
       <div 
         className={styles.clickArea} 
         onClick={togglePlay} 
         style={{ pointerEvents: playing ? 'auto' : 'none' }}
       />
 
-      {/* Overlay UI */}
       <div className={`${styles.overlay} ${showUI ? styles.visible : styles.hidden}`}>
         <div className={styles.topBar}>
           <button onClick={(e) => { e.stopPropagation(); router.back(); }} className={styles.backBtn}>
@@ -282,7 +229,7 @@ export default function WatchClient({ movie }: { movie: any }) {
           </button>
         </div>
 
-        {(showDetails || !playing) && ready && (
+        {(showDetails || !playing) && (
           <div className={`${styles.centerDetails} ${showDetails && playing ? styles.detailsFadeOut : ''}`}>
             <h1 className={styles.movieTitle}>{movie.title}</h1>
             
