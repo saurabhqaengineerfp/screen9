@@ -160,10 +160,27 @@ export default function WatchClient({ movie }: { movie: any }) {
 
   const toggleFullscreen = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!document.fullscreenElement) {
-      containerRef.current?.requestFullscreen();
+    
+    const doc = document as any;
+    if (!doc.fullscreenElement && !doc.webkitFullscreenElement) {
+      if (containerRef.current?.requestFullscreen) {
+        containerRef.current.requestFullscreen().then(() => {
+          try {
+            if (screen.orientation && (screen.orientation as any).lock) {
+              (screen.orientation as any).lock("landscape").catch(() => {});
+            }
+          } catch (err) {}
+        }).catch(() => {});
+      } else if ((videoRef.current as any)?.webkitEnterFullscreen) {
+        // iOS Safari fallback
+        (videoRef.current as any).webkitEnterFullscreen();
+      }
     } else {
-      document.exitFullscreen();
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (doc.webkitExitFullscreen) {
+        doc.webkitExitFullscreen();
+      }
     }
   };
 
@@ -180,7 +197,7 @@ export default function WatchClient({ movie }: { movie: any }) {
 
   // Render simple YouTube iframe
   if (isYouTube) {
-    let youtubeUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&rel=0&modestbranding=1`;
+    let youtubeUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&rel=0&modestbranding=1&playsinline=1`;
     if (movie.start_time) youtubeUrl += `&start=${movie.start_time}`;
     if (movie.end_time) youtubeUrl += `&end=${movie.end_time}`;
 
