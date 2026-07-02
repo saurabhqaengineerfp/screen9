@@ -13,9 +13,12 @@ export async function addMovie(formData: FormData) {
   const tmdbUrl = formData.get("tmdbUrl") as string;
   const videoUrl = formData.get("videoUrl") as string;
   const trailerUrl = formData.get("trailerUrl") as string || null;
-  const category = formData.get("category") as string || "Trending";
+  const category = formData.get("category") as string || "";
   const startTimeStr = formData.get("start_time") as string;
   const endTimeStr = formData.get("end_time") as string;
+  const manualCountry = formData.get("country") as string;
+  const manualPeriod = formData.get("period") as string;
+  const manualTagsStr = formData.get("tags") as string;
 
   if (!tmdbUrl || !videoUrl) {
     throw new Error("TMDB URL and Video URL are required.");
@@ -57,8 +60,8 @@ export async function addMovie(formData: FormData) {
   const tmdbKey = process.env.NEXT_PUBLIC_TMDB_API_KEY;
   if (!tmdbKey) throw new Error("TMDB API key is missing in .env.local");
 
-  // Fetch full details from TMDB including credits (cast and crew)
-  const detailsRes = await fetch(`https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${tmdbKey}&append_to_response=credits`);
+  // Fetch full details from TMDB including credits (cast and crew) and keywords
+  const detailsRes = await fetch(`https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${tmdbKey}&append_to_response=credits,keywords`);
   const detailsData = await detailsRes.json();
 
   if (detailsData.success === false) {
@@ -73,14 +76,36 @@ export async function addMovie(formData: FormData) {
   // Extract top 5 Cast Members
   const castMembers = detailsData.credits?.cast?.slice(0, 5).map((person: any) => person.name) || [];
   
+  const releaseYear = detailsData.release_date ? parseInt(detailsData.release_date.split('-')[0]) : null;
+  const autoPeriod = releaseYear ? `${Math.floor(releaseYear / 10) * 10}s` : null;
+  
+  const autoCountry = detailsData.production_countries?.length > 0 ? detailsData.production_countries[0].name : null;
+  
+  const tmdbGenres = detailsData.genres?.map((g: any) => g.name) || [];
+  const tmdbKeywords = detailsData.keywords?.keywords?.map((k: any) => k.name) || [];
+  const tmdbLanguages = detailsData.spoken_languages?.map((l: any) => l.english_name) || [];
+  const autoTags = Array.from(new Set([...tmdbGenres, ...tmdbKeywords, ...tmdbLanguages]));
+  
+  const manualTags = manualTagsStr ? manualTagsStr.split(',').map(t => t.trim()).filter(Boolean) : [];
+  const finalTags = Array.from(new Set([...manualTags, ...autoTags]));
+
+  let finalCategory = category;
+  if (!finalCategory || finalCategory === "Trending" || finalCategory === "Auto-Assign") {
+    finalCategory = tmdbGenres.length > 0 ? tmdbGenres[0] : "Trending";
+    const { data: existingCat } = await supabase.from('categories').select('id').eq('name', finalCategory).single();
+    if (!existingCat) {
+      await supabase.from('categories').insert({ name: finalCategory });
+    }
+  }
+
   const { error } = await supabase.from('movies').insert({
     title: detailsData.title,
     description: detailsData.overview,
     poster_url: detailsData.poster_path ? `https://image.tmdb.org/t/p/w500${detailsData.poster_path}` : null,
     backdrop_url: detailsData.backdrop_path ? `https://image.tmdb.org/t/p/original${detailsData.backdrop_path}` : null,
-    release_year: detailsData.release_date ? parseInt(detailsData.release_date.split('-')[0]) : null,
-    genres: detailsData.genres?.map((g: any) => g.name) || [],
-    category: category,
+    release_year: releaseYear,
+    genres: tmdbGenres,
+    category: finalCategory,
     video_source_type: videoSourceType,
     video_url: cleanVideoUrl,
     trailer_url: trailerUrl,
@@ -89,7 +114,10 @@ export async function addMovie(formData: FormData) {
     director: director,
     cast_members: castMembers,
     start_time: start_time,
-    end_time: end_time
+    end_time: end_time,
+    country: manualCountry || autoCountry,
+    period: manualPeriod || autoPeriod,
+    tags: finalTags
   });
 
   if (error) {
@@ -134,6 +162,9 @@ export async function updateMovie(id: string, formData: FormData) {
   const category = formData.get("category") as string || "Trending";
   const startTimeStr = formData.get("start_time") as string;
   const endTimeStr = formData.get("end_time") as string;
+  const country = formData.get("country") as string;
+  const period = formData.get("period") as string;
+  const tagsStr = formData.get("tags") as string;
 
   if (!title || !videoUrl) throw new Error("Title and Video URL are required.");
 
@@ -170,7 +201,10 @@ export async function updateMovie(id: string, formData: FormData) {
     category,
     start_time,
     end_time,
-    video_source_type: videoSourceType
+    video_source_type: videoSourceType,
+    country,
+    period,
+    tags: tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : []
   };
 
   const { data, error } = await supabase.from('movies').update(updatePayload).eq('id', id).select().single();

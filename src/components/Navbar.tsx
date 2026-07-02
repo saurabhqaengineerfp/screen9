@@ -8,7 +8,13 @@ import SearchBar from './SearchBar';
 export default async function Navbar() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const { data: categories } = await supabase.from('categories').select('id, name').order('name');
+  const { data: allCategories } = await supabase.from('categories').select('id, name').order('name');
+  
+  // Get categories in use
+  const { data: moviesCategories } = await supabase.from('movies').select('category');
+  const usedCategoryNames = new Set((moviesCategories || []).map(m => m.category).filter(Boolean));
+  
+  const categories = (allCategories || []).filter(c => usedCategoryNames.has(c.name));
 
   return (
     <nav className={styles.navbar}>

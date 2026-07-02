@@ -30,6 +30,20 @@ export default async function Home() {
     runtime: 166
   };
 
+  // Dynamically extract top tags for curated rails
+  const tagCounts: Record<string, number> = {};
+  trendingMovies.forEach(movie => {
+    (movie.tags || []).forEach((tag: string) => {
+      tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+    });
+  });
+  
+  // Sort tags by frequency and pick the top 4
+  const topTags = Object.entries(tagCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+    .map(t => t[0]);
+
   return (
     <main className={styles.main}>
       {/* Hero Section */}
@@ -73,26 +87,61 @@ export default async function Home() {
           ) : (
             <div className={styles.cardsScroll}>
               {trendingMovies.map((movie) => (
-                <Link href={`/watch/${movie.id}`} key={movie.id} className={styles.card}>
-                  {movie.poster_url ? (
-                    <Image 
-                      src={movie.poster_url} 
-                      alt={movie.title} 
-                      className={styles.poster}
-                      fill
-                      unoptimized
-                      style={{ objectFit: 'cover' }}
-                    />
-                  ) : (
-                    <div style={{width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#333'}}>
-                      {movie.title}
-                    </div>
-                  )}
-                </Link>
+                <MoreInfoModal movie={movie} key={movie.id}>
+                  <div className={styles.card}>
+                    {movie.poster_url ? (
+                      <Image 
+                        src={movie.poster_url} 
+                        alt={movie.title} 
+                        className={styles.poster}
+                        fill
+                        unoptimized
+                        style={{ objectFit: 'cover' }}
+                      />
+                    ) : (
+                      <div style={{width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#333'}}>
+                        {movie.title}
+                      </div>
+                    )}
+                  </div>
+                </MoreInfoModal>
               ))}
             </div>
           )}
         </div>
+
+        {/* Dynamic Tag Rails */}
+        {topTags.map(tag => {
+          const tagMovies = trendingMovies.filter(m => (m.tags || []).includes(tag));
+          if (tagMovies.length < 2) return null; // Only show rail if there are multiple movies
+          return (
+            <div className={styles.row} key={tag}>
+              <h2 className={styles.rowTitle}>Curated Collection: {tag}</h2>
+              <div className={styles.cardsScroll}>
+                {tagMovies.map((movie) => (
+                  <MoreInfoModal movie={movie} key={movie.id}>
+                    <div className={styles.card}>
+                      {movie.poster_url ? (
+                        <Image 
+                          src={movie.poster_url} 
+                          alt={movie.title} 
+                          className={styles.poster}
+                          fill
+                          unoptimized
+                          style={{ objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <div style={{width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#333'}}>
+                          {movie.title}
+                        </div>
+                      )}
+                    </div>
+                  </MoreInfoModal>
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </section>
     </main>
   );

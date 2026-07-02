@@ -26,6 +26,9 @@ create table public.movies (
   start_time integer,
   end_time integer,
   trailer_url text,
+  country text,
+  period text,
+  tags text[],
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 

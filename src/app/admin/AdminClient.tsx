@@ -168,15 +168,12 @@ export default function AdminClient({ initialMovies, initialCategories }: { init
               </div>
               
               <div className={styles.inputGroup}>
-                <label>Category</label>
-                <select name="category">
-                  {categories.length === 0 ? (
-                    <option value="Trending">Trending (Fallback)</option>
-                  ) : (
-                    categories.map(cat => (
-                      <option key={cat.id} value={cat.name}>{cat.name}</option>
-                    ))
-                  )}
+                <label>Category (Auto-assigned from TMDB, override here)</label>
+                <select name="category" defaultValue="">
+                  <option value="">-- Auto-Assign --</option>
+                  {categories.map(cat => (
+                    <option key={cat.id} value={cat.name}>{cat.name}</option>
+                  ))}
                 </select>
               </div>
 
@@ -189,6 +186,23 @@ export default function AdminClient({ initialMovies, initialCategories }: { init
                   <label>End Time (seconds) - Optional</label>
                   <input name="end_time" type="number" min="0" placeholder="e.g. 120" />
                 </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <div className={styles.inputGroup} style={{ flex: 1 }}>
+                  <label>Country (Auto-fetched, override here)</label>
+                  <input name="country" type="text" placeholder="e.g. India" />
+                </div>
+                <div className={styles.inputGroup} style={{ flex: 1 }}>
+                  <label>Period (Auto-fetched, override here)</label>
+                  <input name="period" type="text" placeholder="e.g. 2000s" />
+                </div>
+              </div>
+              
+              <div className={styles.inputGroup}>
+                <label>Extra Tags (Comma separated, Optional)</label>
+                <input name="tags" type="text" placeholder="e.g. Bollywood, Oscar Winner" />
+                <span style={{fontSize: '0.8rem', color: '#888', marginTop: '4px'}}>TMDB keywords and genres will be auto-fetched and added automatically. Add custom ones here.</span>
               </div>
 
               <button type="submit" disabled={loading} className={styles.button}>
@@ -280,6 +294,22 @@ export default function AdminClient({ initialMovies, initialCategories }: { init
                   <label>End Time (seconds) - Optional</label>
                   <input name="end_time" type="number" min="0" defaultValue={editingMovie.end_time || ""} />
                 </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <div className={styles.inputGroup} style={{ flex: 1 }}>
+                  <label>Country</label>
+                  <input name="country" type="text" defaultValue={editingMovie.country || ""} />
+                </div>
+                <div className={styles.inputGroup} style={{ flex: 1 }}>
+                  <label>Period</label>
+                  <input name="period" type="text" defaultValue={editingMovie.period || ""} />
+                </div>
+              </div>
+              
+              <div className={styles.inputGroup}>
+                <label>Tags (Comma separated)</label>
+                <input name="tags" type="text" defaultValue={editingMovie.tags ? editingMovie.tags.join(', ') : ""} />
               </div>
 
               <div style={{ display: 'flex', gap: '10px' }}>

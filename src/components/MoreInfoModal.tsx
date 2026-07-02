@@ -7,7 +7,7 @@ import Link from "next/link";
 import { Play, Info, X } from "lucide-react";
 import styles from "./MoreInfoModal.module.css";
 
-export default function MoreInfoButton({ movie }: { movie: any }) {
+export default function MoreInfoModal({ movie, children }: { movie: any, children?: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -25,10 +25,16 @@ export default function MoreInfoButton({ movie }: { movie: any }) {
 
   return (
     <>
-      <button className={styles.infoBtn} onClick={() => setIsOpen(true)}>
-        <Info size={20} />
-        More Info
-      </button>
+      {children ? (
+        <div onClick={(e) => { e.preventDefault(); setIsOpen(true); }} style={{ cursor: 'pointer', height: '100%', width: '100%' }}>
+          {children}
+        </div>
+      ) : (
+        <button className={styles.infoBtn} onClick={() => setIsOpen(true)}>
+          <Info size={20} />
+          More Info
+        </button>
+      )}
 
       {isOpen && mounted && createPortal(
         <div className={styles.modalOverlay} onClick={() => setIsOpen(false)}>

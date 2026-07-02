@@ -92,3 +92,160 @@
   color: rgba(255,255,255,0.6);
   font-size: 1.2rem;
 }
+
+/* Browse Layout */
+.browseLayout {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+}
+
+.filterSidebar {
+  width: 260px;
+  flex-shrink: 0;
+  background: rgba(20, 20, 20, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 24px;
+  border-radius: 16px;
+  position: sticky;
+  top: 100px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.filterHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.filterHeader h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  background: linear-gradient(90deg, #fff, #aaa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.filterGroup {
+  margin-bottom: 20px;
+}
+
+.filterGroup label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #888;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.selectWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.selectWrapper select {
+  width: 100%;
+  padding: 12px 40px 12px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  appearance: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.selectWrapper select:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 122, 0, 0.4);
+}
+
+.selectWrapper select:focus {
+  outline: none;
+  border-color: #ff7a00;
+  box-shadow: 0 0 0 2px rgba(255, 122, 0, 0.2);
+}
+
+.selectWrapper select option {
+  background: #1a1a1a;
+  color: #fff;
+  padding: 10px;
+}
+
+.selectIcon {
+  position: absolute;
+  right: 14px;
+  color: #888;
+  pointer-events: none;
+  transition: color 0.2s ease;
+}
+
+.selectWrapper select:hover ~ .selectIcon,
+.selectWrapper select:focus ~ .selectIcon {
+  color: #ff7a00;
+}
+
+.clearFiltersBtn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 16px;
+  background: rgba(255, 122, 0, 0.1);
+  color: #ff7a00;
+  border: 1px solid rgba(255, 122, 0, 0.3);
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clearFiltersBtn:hover {
+  background: #ff7a00;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(255, 122, 0, 0.3);
+}
+
+.browseContent {
+  flex-grow: 1;
+}
+
+.headerArea {
+  margin-bottom: 30px;
+}
+
+.countBadge {
+  background: rgba(255,255,255,0.1);
+  font-size: 1rem;
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-left: 15px;
+  vertical-align: middle;
+}
+
+.flatGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.movieMeta {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: #bbb;
+}
+
+.movieMeta span {
+  background: rgba(255,255,255,0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
