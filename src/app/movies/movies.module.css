@@ -4,9 +4,13 @@
 }
 
 .title {
-  font-size: 2.5rem;
+  font-size: 3rem;
   margin-bottom: 40px;
   font-weight: 700;
+  letter-spacing: -0.03em;
+  background: linear-gradient(90deg, #fff, #bbb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .categoryRow {
@@ -36,19 +40,21 @@
 .movieCard {
   flex: 0 0 250px;
   height: 375px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
   position: relative;
   overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
   cursor: pointer;
   display: block;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .movieCard:hover {
-  transform: scale(1.05) translateY(-10px);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  transform: scale(1.05) translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.8), 0 0 20px rgba(255, 122, 0, 0.15);
   z-index: 10;
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 .moviePoster {
@@ -72,10 +78,13 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(transparent, rgba(0,0,0,0.9));
-  padding: 20px;
+  background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.5) 60%, transparent 100%);
+  padding: 30px 20px 20px;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.4s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
 }
 
 .movieCard:hover .movieOverlay {

@@ -34,15 +34,17 @@
 }
 
 .modalContent {
-  background: #141414;
-  width: 80vw; /* 80% of screen width */
-  height: 85vh; /* 85% of screen height */
+  background: rgba(15, 15, 15, 0.85);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  width: 80vw;
+  height: 85vh;
   max-width: 1400px;
-  border-radius: 12px;
+  border-radius: 16px;
   overflow-y: auto;
   position: relative;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 100px rgba(255, 122, 0, 0.1); /* Subtle orange glow edge */
-  animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  animation: modalIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
 /* Hide scrollbar for cleaner look but keep it scrollable */
@@ -55,7 +57,7 @@
 }
 
 @keyframes modalIn {
-  from { opacity: 0; transform: scale(0.95) translateY(20px); }
+  from { opacity: 0; transform: scale(0.95) translateY(40px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
@@ -63,19 +65,21 @@
   position: absolute;
   top: 24px;
   right: 24px;
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  background: rgba(20, 20, 20, 0.7);
-  backdrop-filter: blur(5px);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   color: white;
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 10;
   cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.2s;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
 .closeBtn:hover {
@@ -104,9 +108,14 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 100%;
-  /* Gradient that starts transparent at top and fades to solid #141414 at bottom */
-  background: linear-gradient(to top, #141414 0%, rgba(20, 20, 20, 0.8) 20%, transparent 60%);
+  height: 120%; /* Cover more area */
+  background: linear-gradient(
+    to top, 
+    rgba(15, 15, 15, 0.95) 0%, 
+    rgba(15, 15, 15, 0.7) 30%, 
+    transparent 80%
+  );
+  pointer-events: none;
 }
 
 .headerContent {
@@ -118,10 +127,12 @@
 }
 
 .modalTitle {
-  font-size: 4rem;
+  font-size: 4.5rem;
   font-weight: 800;
   margin-bottom: 24px;
-  text-shadow: 0 4px 12px rgba(0,0,0,0.9);
+  letter-spacing: -0.04em;
+  color: #ffffff;
+  text-shadow: 0 4px 20px rgba(0,0,0,0.8);
 }
 
 .actions {
@@ -134,7 +145,7 @@
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 60px;
-  background: #141414;
+  background: transparent; /* Rely on parent glassmorphism */
 }
 
 .meta {

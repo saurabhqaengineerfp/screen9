@@ -26,7 +26,7 @@ export default function MoreInfoModal({ movie, children }: { movie: any, childre
   return (
     <>
       {children ? (
-        <div onClick={(e) => { e.preventDefault(); setIsOpen(true); }} style={{ cursor: 'pointer', height: '100%', width: '100%' }}>
+        <div onClick={(e) => { e.preventDefault(); setIsOpen(true); }} style={{ display: 'contents' }}>
           {children}
         </div>
       ) : (
