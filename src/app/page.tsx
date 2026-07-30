@@ -4,6 +4,7 @@ import { Play, Info } from "lucide-react";
 import styles from "./page.module.css";
 import HeroVideo from "@/components/HeroVideo";
 import MoreInfoModal from "@/components/MoreInfoModal";
+import CardPlayButton from "@/components/CardPlayButton";
 import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 
@@ -128,9 +129,7 @@ export default async function Home() {
                     )}
                     <div className={styles.cardOverlay}>
                       <div className={styles.cardActions}>
-                        <Link href={`/watch/${movie.id}`} onClick={(e) => e.stopPropagation()} className={styles.cardPlayBtn}>
-                          <Play fill="currentColor" size={20} />
-                        </Link>
+                        <CardPlayButton movieId={movie.id} className={styles.cardPlayBtn} />
                         <div className={styles.cardInfoBtn}>
                           <Info size={20} />
                         </div>
@@ -167,9 +166,7 @@ export default async function Home() {
                     )}
                     <div className={styles.cardOverlay}>
                       <div className={styles.cardActions}>
-                        <Link href={`/watch/${movie.id}`} onClick={(e) => e.stopPropagation()} className={styles.cardPlayBtn}>
-                          <Play fill="currentColor" size={20} />
-                        </Link>
+                        <CardPlayButton movieId={movie.id} className={styles.cardPlayBtn} />
                         <div className={styles.cardInfoBtn}>
                           <Info size={20} />
                         </div>

@@ -1,9 +1,9 @@
 import Image from "next/image";
-import Link from "next/link";
 import { createClient } from "@/utils/supabase/server";
 import styles from "./category.module.css";
 import MoreInfoModal from "@/components/MoreInfoModal";
-import { Play, Info } from "lucide-react";
+import CardPlayButton from "@/components/CardPlayButton";
+import { Info } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
 
@@ -49,9 +49,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ name:
               )}
               <div className={styles.cardOverlay}>
                 <div className={styles.cardActions}>
-                  <Link href={`/watch/${movie.id}`} onClick={(e) => e.stopPropagation()} className={styles.cardPlayBtn}>
-                    <Play fill="currentColor" size={20} />
-                  </Link>
+                  <CardPlayButton movieId={movie.id} className={styles.cardPlayBtn} />
                   <div className={styles.cardInfoBtn}>
                     <Info size={20} />
                   </div>
