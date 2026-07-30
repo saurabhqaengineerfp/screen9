@@ -181,3 +181,51 @@
 .creditValue {
   color: #ddd;
 }
+
+@media (max-width: 768px) {
+  .modalContent {
+    width: 95vw;
+    height: 90vh;
+  }
+  
+  .modalHeader {
+    height: 40vh;
+    min-height: 250px;
+  }
+  
+  .headerContent {
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+  }
+  
+  .modalTitle {
+    font-size: 2.5rem;
+    margin-bottom: 16px;
+  }
+  
+  .modalBody {
+    grid-template-columns: 1fr;
+    padding: 0 20px 30px 20px;
+    gap: 24px;
+  }
+  
+  .meta {
+    font-size: 1rem;
+    margin-bottom: 16px;
+  }
+  
+  .description {
+    font-size: 1.05rem;
+  }
+  
+  .creditBlock {
+    font-size: 0.95rem;
+    margin-bottom: 12px;
+  }
+  
+  .infoBtn {
+    padding: 10px 20px;
+    font-size: 0.95rem;
+  }
+}

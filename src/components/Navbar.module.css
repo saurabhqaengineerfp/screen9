@@ -9,10 +9,15 @@
   justify-content: space-between;
   padding: 0 50px;
   z-index: 100;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  transition: all 0.3s ease;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%);
+  transition: background-color 0.4s ease, backdrop-filter 0.4s ease;
+}
+
+:global(#main-navbar.scrolled) {
+  background-color: rgba(5, 5, 5, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .brand {
@@ -166,16 +171,24 @@
   
   .navLinks {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     position: absolute;
     top: 60px;
     left: 0;
     right: 0;
+    width: 100vw;
     background: rgba(5, 5, 5, 0.95);
     backdrop-filter: blur(8px);
     padding: 12px 16px;
-    gap: 20px;
+    gap: 24px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  
+  .navLinks::-webkit-scrollbar {
+    display: none;
   }
   
   .brand {
