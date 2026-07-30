@@ -313,11 +313,12 @@
     padding: 16px;
   }
   .flatGrid {
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
   }
   .movieCard {
-    flex: 0 0 110px;
+    flex: unset;
+    width: 100%;
     height: auto;
     aspect-ratio: 2/3;
   }
