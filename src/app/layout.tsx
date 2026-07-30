@@ -9,6 +9,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   display: "swap",
 });
 export const viewport: Viewport = {
+  themeColor: "#FF7A00",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -19,7 +20,6 @@ export const metadata: Metadata = {
   title: "Screen9",
   description: "Premium Movie Streaming Platform",
   manifest: "/manifest.json",
-  themeColor: "#FF7A00",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
