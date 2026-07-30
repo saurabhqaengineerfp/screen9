@@ -5,10 +5,14 @@ import styles from "./page.module.css";
 import HeroVideo from "@/components/HeroVideo";
 import MoreInfoModal from "@/components/MoreInfoModal";
 import { createClient } from "@/utils/supabase/server";
+import { headers } from "next/headers";
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
 
 export default async function Home() {
+  await headers(); // Explicitly opt-into dynamic rendering to bypass Vercel CDN/Data cache
   const supabase = await createClient();
   
   // Fetch movies from DB
@@ -19,8 +23,8 @@ export default async function Home() {
 
   const trendingMovies = dbMovies || [];
 
-  // Use the most recent movie as the Hero, fallback to Dune if DB is empty
-  const heroMovie = trendingMovies.length > 0 ? trendingMovies[0] : {
+  // Pick a random movie for the Hero section, fallback to Dune if DB is empty
+  const heroMovie = trendingMovies.length > 0 ? trendingMovies[Math.floor(Math.random() * trendingMovies.length)] : {
     title: "Dune: Part Two",
     description: "Paul Atreides unites with Chani and the Fremen while on a warpath of revenge against the conspirators who destroyed his family.",
     video_url: null,
@@ -38,11 +42,30 @@ export default async function Home() {
     });
   });
   
-  // Sort tags by frequency and pick the top 4
-  const topTags = Object.entries(tagCounts)
+  // Sort tags by frequency
+  const sortedTags = Object.entries(tagCounts)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 4)
     .map(t => t[0]);
+
+  // Build unique rails to avoid identical rows
+  const renderedMovieSets = new Set<string>();
+  const curatedRails = [];
+  
+  for (const tag of sortedTags) {
+    if (curatedRails.length >= 4) break; // Limit to 4 rails max
+    
+    const tagMovies = trendingMovies.filter(m => (m.tags || []).includes(tag));
+    if (tagMovies.length < 2) continue; // Only show rail if there are multiple movies
+    
+    // Create a unique signature for this set of movies (e.g. "uuid1,uuid2")
+    const movieSignature = tagMovies.map(m => m.id).sort().join(',');
+    if (renderedMovieSets.has(movieSignature)) {
+      continue; // Skip this tag because we already have a row with these exact movies
+    }
+    
+    renderedMovieSets.add(movieSignature);
+    curatedRails.push({ tag, movies: tagMovies });
+  }
 
   return (
     <main className={styles.main}>
@@ -111,37 +134,33 @@ export default async function Home() {
         </div>
 
         {/* Dynamic Tag Rails */}
-        {topTags.map(tag => {
-          const tagMovies = trendingMovies.filter(m => (m.tags || []).includes(tag));
-          if (tagMovies.length < 2) return null; // Only show rail if there are multiple movies
-          return (
-            <div className={styles.row} key={tag}>
-              <h2 className={styles.rowTitle}>Curated Collection: {tag}</h2>
-              <div className={styles.cardsScroll}>
-                {tagMovies.map((movie) => (
-                  <MoreInfoModal movie={movie} key={movie.id}>
-                    <div className={styles.card}>
-                      {movie.poster_url ? (
-                        <Image 
-                          src={movie.poster_url} 
-                          alt={movie.title} 
-                          className={styles.poster}
-                          fill
-                          unoptimized
-                          style={{ objectFit: 'cover' }}
-                        />
-                      ) : (
-                        <div style={{width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#333'}}>
-                          {movie.title}
-                        </div>
-                      )}
-                    </div>
-                  </MoreInfoModal>
-                ))}
-              </div>
+        {curatedRails.map(rail => (
+          <div className={styles.row} key={rail.tag}>
+            <h2 className={styles.rowTitle}>Curated Collection: {rail.tag}</h2>
+            <div className={styles.cardsScroll}>
+              {rail.movies.map((movie) => (
+                <MoreInfoModal movie={movie} key={movie.id}>
+                  <div className={styles.card}>
+                    {movie.poster_url ? (
+                      <Image 
+                        src={movie.poster_url} 
+                        alt={movie.title} 
+                        className={styles.poster}
+                        fill
+                        unoptimized
+                        style={{ objectFit: 'cover' }}
+                      />
+                    ) : (
+                      <div style={{width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#333'}}>
+                        {movie.title}
+                      </div>
+                    )}
+                  </div>
+                </MoreInfoModal>
+              ))}
             </div>
-          );
-        })}
+          </div>
+        ))}
       </section>
     </main>
   );
