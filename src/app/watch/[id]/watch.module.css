@@ -296,6 +296,18 @@
   .bigPlayBtn {
     display: none; /* Hide our play button so they must tap the YouTube red button in the center */
   }
+  .topBar {
+    padding: 20px 16px;
+  }
+  .bottomControls {
+    padding: 0 16px 24px;
+  }
+  .leftControls, .rightControls {
+    gap: 12px;
+  }
+  .volumeGroup {
+    display: none;
+  }
 }
 
 .youtubeTopBar {

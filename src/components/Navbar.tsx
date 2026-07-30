@@ -4,6 +4,7 @@ import styles from './Navbar.module.css';
 import { createClient } from '@/utils/supabase/server';
 import CategoriesDropdown from './CategoriesDropdown';
 import SearchBar from './SearchBar';
+import NavbarScroll from './NavbarScroll';
 
 export default async function Navbar() {
   const supabase = await createClient();
@@ -17,7 +18,9 @@ export default async function Navbar() {
   const categories = (allCategories || []).filter(c => usedCategoryNames.has(c.name));
 
   return (
-    <nav className={styles.navbar}>
+    <>
+    <NavbarScroll />
+    <nav id="main-navbar" className={styles.navbar}>
       <Link href="/" className={styles.brand}>
         <Film size={28} color="#6d28d9" />
         <div>Screen<span>9</span></div>
@@ -41,5 +44,6 @@ export default async function Navbar() {
         )}
       </div>
     </nav>
+    </>
   );
 }

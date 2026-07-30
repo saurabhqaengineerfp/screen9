@@ -258,3 +258,32 @@
   padding: 2px 6px;
   border-radius: 4px;
 }
+
+@media (max-width: 768px) {
+  .container {
+    padding: 100px 16px 20px;
+  }
+  .title {
+    font-size: 2rem;
+    margin-bottom: 24px;
+  }
+  .browseLayout {
+    flex-direction: column;
+    gap: 20px;
+  }
+  .filterSidebar {
+    width: 100%;
+    position: relative;
+    top: 0;
+    padding: 16px;
+  }
+  .flatGrid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+  }
+  .movieCard {
+    flex: 0 0 140px;
+    height: auto;
+    aspect-ratio: 2/3;
+  }
+}

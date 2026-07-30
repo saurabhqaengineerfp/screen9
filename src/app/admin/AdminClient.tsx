@@ -147,7 +147,7 @@ export default function AdminClient({ initialMovies, initialCategories }: { init
 
         {/* ADD MOVIE TAB */}
         {activeTab === 'add_movie' && (
-          <div className={styles.card} style={{ marginTop: message || error ? '20px' : '0' }}>
+          <div style={{ marginTop: message || error ? '20px' : '0' }}>
             <h1 className={styles.title}>Add Movie</h1>
             <p className={styles.subtitle}>Add a new movie by providing its TMDB link and Video source.</p>
             
@@ -256,7 +256,7 @@ export default function AdminClient({ initialMovies, initialCategories }: { init
 
         {/* EDIT MOVIE SUB-VIEW */}
         {activeTab === 'manage_movies' && editingMovie && (
-          <div className={styles.card} style={{ marginTop: message || error ? '20px' : '0', maxWidth: '800px' }}>
+          <div style={{ marginTop: message || error ? '20px' : '0' }}>
             <h1 className={styles.title}>Edit Movie: {editingMovie.title}</h1>
             <p className={styles.subtitle}>Update the parameters below. TMDB IDs and basic info cannot be modified here.</p>
             
@@ -330,7 +330,7 @@ export default function AdminClient({ initialMovies, initialCategories }: { init
             <h1 className={styles.title}>Manage Categories</h1>
             <p className={styles.subtitle}>Add or delete movie categories.</p>
             
-            <form onSubmit={handleAddCategory} className={styles.form} style={{ marginBottom: '30px', flexDirection: 'row', alignItems: 'flex-end', gap: '10px', maxWidth: '600px' }}>
+            <form onSubmit={handleAddCategory} className={styles.form} style={{ marginBottom: '30px', flexDirection: 'row', alignItems: 'flex-end', gap: '10px' }}>
               <div className={styles.inputGroup} style={{ flex: 1, margin: 0 }}>
                 <label>New Category Name</label>
                 <input name="name" type="text" placeholder="e.g. Action Blockbusters" required />
@@ -345,7 +345,7 @@ export default function AdminClient({ initialMovies, initialCategories }: { init
             ) : (
               <div className={styles.movieList}>
                 {categories.map(cat => (
-                  <div key={cat.id} className={styles.movieItem} style={{ maxWidth: '600px' }}>
+                  <div key={cat.id} className={styles.movieItem}>
                     <div>
                       <strong style={{ fontSize: '1.1rem' }}>{cat.name}</strong>
                     </div>
