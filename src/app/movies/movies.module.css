@@ -95,6 +95,38 @@
   margin: 0;
   font-size: 1.1rem;
   font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.cardActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.cardPlayBtn, .cardInfoBtn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  backdrop-filter: blur(4px);
+  transition: transform 0.2s, background 0.2s;
+  cursor: pointer;
+}
+
+.cardPlayBtn:hover {
+  background: var(--primary);
+  transform: scale(1.1);
+}
+
+.cardInfoBtn:hover {
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(1.1);
 }
 
 .emptyState {
@@ -261,7 +293,10 @@
 
 @media (max-width: 768px) {
   .container {
-    padding: 100px 16px 20px;
+    padding: 160px 16px 20px;
+  }
+  .headerArea {
+    text-align: center;
   }
   .title {
     font-size: 2rem;
@@ -278,12 +313,21 @@
     padding: 16px;
   }
   .flatGrid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
     gap: 12px;
   }
   .movieCard {
-    flex: 0 0 140px;
+    flex: 0 0 110px;
     height: auto;
     aspect-ratio: 2/3;
+  }
+  .movieOverlay {
+    opacity: 1;
+    background: linear-gradient(to top, rgba(0,0,0,0.9), transparent 80%);
+    padding: 12px;
+  }
+  .cardPlayBtn, .cardInfoBtn {
+    width: 32px;
+    height: 32px;
   }
 }

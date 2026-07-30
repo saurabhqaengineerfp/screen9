@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/server";
 import styles from "./category.module.css";
+import MoreInfoModal from "@/components/MoreInfoModal";
+import { Play, Info } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
 
@@ -29,25 +31,34 @@ export default async function CategoryPage({ params }: { params: Promise<{ name:
 
       <div className={styles.grid}>
         {movies?.map((movie) => (
-          <Link href={`/watch/${movie.id}`} key={movie.id} className={styles.card}>
-            {movie.poster_url ? (
-              <Image 
-                src={movie.poster_url} 
-                alt={movie.title} 
-                className={styles.poster}
-                fill
-                unoptimized
-                style={{ objectFit: 'cover' }}
-              />
-            ) : (
-              <div style={{width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#333'}}>
-                {movie.title}
+          <MoreInfoModal movie={movie} key={movie.id}>
+            <div className={styles.card}>
+              {movie.poster_url ? (
+                <Image 
+                  src={movie.poster_url} 
+                  alt={movie.title} 
+                  className={styles.poster}
+                  fill
+                  unoptimized
+                  style={{ objectFit: 'cover' }}
+                />
+              ) : (
+                <div style={{width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#333'}}>
+                  {movie.title}
+                </div>
+              )}
+              <div className={styles.cardOverlay}>
+                <div className={styles.cardActions}>
+                  <Link href={`/watch/${movie.id}`} onClick={(e) => e.stopPropagation()} className={styles.cardPlayBtn}>
+                    <Play fill="currentColor" size={20} />
+                  </Link>
+                  <div className={styles.cardInfoBtn}>
+                    <Info size={20} />
+                  </div>
+                </div>
               </div>
-            )}
-            <div className={styles.cardInfo}>
-              <p>{movie.title}</p>
             </div>
-          </Link>
+          </MoreInfoModal>
         ))}
       </div>
     </main>

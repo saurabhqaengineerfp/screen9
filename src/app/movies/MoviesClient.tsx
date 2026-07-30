@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Filter } from 'lucide-react';
+import { Filter, Play, Info } from 'lucide-react';
 import styles from './movies.module.css';
 import MoreInfoModal from '@/components/MoreInfoModal';
 import CustomSelect from '@/components/CustomSelect';
@@ -147,6 +147,14 @@ export default function MoviesClient({ initialMovies }: { initialMovies: any[] }
                     <div className={styles.movieMeta}>
                       {movie.category && <span>{movie.category}</span>}
                       {movie.period && <span>{movie.period}</span>}
+                    </div>
+                    <div className={styles.cardActions}>
+                      <Link href={`/watch/${movie.id}`} onClick={(e) => e.stopPropagation()} className={styles.cardPlayBtn}>
+                        <Play fill="currentColor" size={20} />
+                      </Link>
+                      <div className={styles.cardInfoBtn}>
+                        <Info size={20} />
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -126,6 +126,16 @@ export default async function Home() {
                         {movie.title}
                       </div>
                     )}
+                    <div className={styles.cardOverlay}>
+                      <div className={styles.cardActions}>
+                        <Link href={`/watch/${movie.id}`} onClick={(e) => e.stopPropagation()} className={styles.cardPlayBtn}>
+                          <Play fill="currentColor" size={20} />
+                        </Link>
+                        <div className={styles.cardInfoBtn}>
+                          <Info size={20} />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </MoreInfoModal>
               ))}
@@ -155,6 +165,16 @@ export default async function Home() {
                         {movie.title}
                       </div>
                     )}
+                    <div className={styles.cardOverlay}>
+                      <div className={styles.cardActions}>
+                        <Link href={`/watch/${movie.id}`} onClick={(e) => e.stopPropagation()} className={styles.cardPlayBtn}>
+                          <Play fill="currentColor" size={20} />
+                        </Link>
+                        <div className={styles.cardInfoBtn}>
+                          <Info size={20} />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </MoreInfoModal>
               ))}
