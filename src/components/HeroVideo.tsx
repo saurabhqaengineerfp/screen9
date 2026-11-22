@@ -79,6 +79,9 @@ export default function HeroVideo({ movie }: { movie?: any }) {
             if (cancelled) return;
             try {
               event.target.mute();
+              if (typeof event.target.setPlaybackQuality === "function") {
+                event.target.setPlaybackQuality("hd1080");
+              }
               event.target.playVideo();
             } catch {
               // ignore autoplay restrictions

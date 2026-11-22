@@ -194,17 +194,71 @@ export default function WatchClient({ movie }: { movie: any }) {
           )}
         </header>
 
-        <div className={styles.iframeStage}>
-          <iframe
-            key={showingTrailer ? "trailer" : "full"}
-            src={activeSrc}
-            title={showingTrailer ? `${movie.title} — Official Trailer` : movie.title}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-            referrerPolicy="strict-origin-when-cross-origin"
-            allowFullScreen
-            className={styles.officialIframe}
-          />
-        </div>
+        {showingTrailer ? (
+          <div className={styles.ottLayout}>
+            <div className={styles.trailerStage}>
+              <iframe
+                key="trailer"
+                src={activeSrc}
+                title={`${movie.title} — Official Trailer`}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+                className={styles.officialIframe}
+              />
+            </div>
+
+            <aside className={styles.ottSidebar}>
+              <div className={styles.providersCard}>
+                <span className={styles.label}>FREE TO WATCH ON SCREEN9</span>
+                <button
+                  type="button"
+                  onClick={() => setEmbedView("full")}
+                  className={`btn-primary ${styles.tmdbWatchBtn}`}
+                >
+                  <Play fill="currentColor" size={14} />
+                  Watch Full Film Free
+                </button>
+              </div>
+
+              {movie.curator_note && (
+                <div className={styles.curatorCard}>
+                  <span className={styles.label}>CURATOR NOTE</span>
+                  <p className={styles.curatorQuote}>“{movie.curator_note}”</p>
+                </div>
+              )}
+
+              <div className={styles.synopsisCard}>
+                <span className={styles.label}>SYNOPSIS</span>
+                <p className={styles.synopsisText}>{movie.description}</p>
+                {movie.director && (
+                  <div className={styles.metaLine}>
+                    <span>DIRECTOR</span>
+                    <strong>{movie.director}</strong>
+                  </div>
+                )}
+                {movie.cast_members && movie.cast_members.length > 0 && (
+                  <div className={styles.metaLine}>
+                    <span>CAST</span>
+                    <strong>{movie.cast_members.join(", ")}</strong>
+                  </div>
+                )}
+              </div>
+            </aside>
+          </div>
+        ) : (
+          <div className={styles.iframeStage}>
+            <iframe
+              key="full"
+              src={activeSrc}
+              title={movie.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+              className={styles.officialIframe}
+            />
+          </div>
+        )}
       </div>
     );
   }
