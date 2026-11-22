@@ -4,6 +4,7 @@ export interface WatchProviderItem {
   provider_id: number;
   provider_name: string;
   logo_path?: string | null;
+  web_url?: string | null;
 }
 
 export interface RegionWatchProviders {

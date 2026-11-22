@@ -213,7 +213,7 @@ export default function MoreInfoModal({
                       {streamProviders.map((p) => (
                         <a
                           key={p.provider_id}
-                          href={getProviderDirectUrl(p.provider_name, movie.title, movie.release_year, watchExternalUrl)}
+                          href={p.web_url || watchExternalUrl || "#"}
                           target="_blank"
                           rel="noopener noreferrer"
                           className={styles.providerChip}
@@ -237,7 +237,7 @@ export default function MoreInfoModal({
                       {rentBuyProviders.slice(0, 6).map((p) => (
                         <a
                           key={p.provider_id}
-                          href={getProviderDirectUrl(p.provider_name, movie.title, movie.release_year, watchExternalUrl)}
+                          href={p.web_url || watchExternalUrl || "#"}
                           target="_blank"
                           rel="noopener noreferrer"
                           className={styles.providerChip}

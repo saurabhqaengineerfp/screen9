@@ -260,7 +260,7 @@ export default function WatchClient({ movie }: { movie: any }) {
                   {streamProviders.map((p) => (
                     <a
                       key={p.provider_id}
-                      href={getProviderDirectUrl(p.provider_name, movie.title, movie.release_year, watchExternalUrl)}
+                      href={p.web_url || watchExternalUrl || "#"}
                       target="_blank"
                       rel="noopener noreferrer"
                       className={styles.providerRow}
@@ -287,7 +287,7 @@ export default function WatchClient({ movie }: { movie: any }) {
                   {rentBuyProviders.slice(0, 6).map((p) => (
                     <a
                       key={p.provider_id}
-                      href={getProviderDirectUrl(p.provider_name, movie.title, movie.release_year, watchExternalUrl)}
+                      href={p.web_url || watchExternalUrl || "#"}
                       target="_blank"
                       rel="noopener noreferrer"
                       className={styles.providerRow}

@@ -168,6 +168,73 @@ function extractProviders(rawResults) {
   return Object.keys(filtered).length > 0 ? filtered : null;
 }
 
+function normalizeProviderKey(name) {
+  const s = (name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  if (s.includes("appletv") || s.includes("itunes")) return "appletv";
+  if (s.includes("primevideo") || s.includes("amazon")) return "amazon";
+  if (s.includes("youtube")) return "youtube";
+  if (s.includes("netflix")) return "netflix";
+  if (s.includes("paramount")) return "paramount";
+  if (s.includes("hbomax") || s === "max") return "max";
+  if (s.includes("disney")) return "disney";
+  if (s.includes("hotstar")) return "hotstar";
+  if (s.includes("hulu")) return "hulu";
+  if (s.includes("hoopla")) return "hoopla";
+  if (s.includes("kanopy")) return "kanopy";
+  if (s.includes("tubi")) return "tubi";
+  if (s.includes("plex")) return "plex";
+  if (s.includes("mubi")) return "mubi";
+  if (s.includes("criterion")) return "criterion";
+  if (s.includes("rakuten")) return "rakuten";
+  if (s.includes("skystore")) return "skystore";
+  if (s.includes("googleplay")) return "googleplay";
+  if (s.includes("fandango") || s.includes("vudu")) return "fandango";
+  if (s.includes("starz")) return "starz";
+  if (s.includes("peacock")) return "peacock";
+  if (s.includes("philo")) return "philo";
+  return s;
+}
+
+async function enrichWithWatchmode(tmdbId, tmdbProviders) {
+  const watchmodeKey = process.env.WATCHMODE_API_KEY;
+  if (!watchmodeKey || !tmdbProviders) return tmdbProviders;
+  try {
+    const res = await fetch(`https://api.watchmode.com/v1/title/movie-${tmdbId}/sources/?apiKey=${watchmodeKey}`);
+    if (!res.ok) return tmdbProviders;
+    const sources = await res.json();
+    if (!Array.isArray(sources)) return tmdbProviders;
+
+    const urlMap = new Map();
+    for (const src of sources) {
+      if (!src.web_url || !src.region || !src.name) continue;
+      const key = `${src.region.toUpperCase()}:${normalizeProviderKey(src.name)}`;
+      const priority = src.type === "free" || src.type === "sub" ? 2 : 1;
+      const existing = urlMap.get(key);
+      if (!existing || priority > existing.priority) urlMap.set(key, { url: src.web_url, priority });
+    }
+
+    const enriched = {};
+    for (const [regionCode, regionData] of Object.entries(tmdbProviders)) {
+      const attach = (list) =>
+        list?.map((p) => {
+          const match = urlMap.get(`${regionCode.toUpperCase()}:${normalizeProviderKey(p.provider_name)}`);
+          return match ? { ...p, web_url: match.url } : p;
+        });
+      enriched[regionCode] = {
+        ...regionData,
+        flatrate: attach(regionData.flatrate),
+        free: attach(regionData.free),
+        ads: attach(regionData.ads),
+        rent: attach(regionData.rent),
+        buy: attach(regionData.buy),
+      };
+    }
+    return enriched;
+  } catch {
+    return tmdbProviders;
+  }
+}
+
 function extractTrailer(videos) {
   const list = videos?.results;
   if (!Array.isArray(list)) return null;
@@ -224,7 +291,8 @@ async function main() {
     const director = details.credits?.crew?.find((p) => p.job === "Director")?.name || null;
     const castMembers = (details.credits?.cast || []).slice(0, 5).map((p) => p.name);
     const trailerUrl = item.trailer_url || extractTrailer(details.videos);
-    const watchProviders = extractProviders(details["watch/providers"]?.results);
+    const tmdbProviders = extractProviders(details["watch/providers"]?.results);
+    const watchProviders = await enrichWithWatchmode(tmdbId, tmdbProviders);
 
     const payload = {
       title: details.title,

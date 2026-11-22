@@ -9,6 +9,7 @@ import {
   SUPPORTED_REGIONS,
   WatchProvidersMap,
 } from "@/utils/movieHelpers";
+import { enrichProvidersWithWatchmode } from "@/utils/watchmode";
 
 const getAdminSupabase = () => {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -214,7 +215,8 @@ export async function addMovie(formData: FormData) {
   const finalTags = Array.from(new Set([...manualTags, ...tmdbLanguages]));
 
   const autoTrailerUrl = extractOfficialTrailer(detailsData.videos);
-  const watchProviders = extractWatchProviders(detailsData["watch/providers"]?.results);
+  const tmdbProviders = extractWatchProviders(detailsData["watch/providers"]?.results);
+  const watchProviders = await enrichProvidersWithWatchmode(tmdbId, tmdbProviders);
 
   let finalCategory = category;
   if (!finalCategory || finalCategory === "Trending" || finalCategory === "Auto-Assign") {
@@ -380,7 +382,8 @@ export async function syncAllMoviesFromTmdb() {
     const tmdbGenres = detailsData.genres?.map((g: any) => g.name) || movie.genres || [];
     const tmdbLanguages = extractCleanLanguages(detailsData);
     const autoTrailerUrl = extractOfficialTrailer(detailsData.videos);
-    const watchProviders = extractWatchProviders(detailsData["watch/providers"]?.results);
+    const tmdbProviders = extractWatchProviders(detailsData["watch/providers"]?.results);
+    const watchProviders = await enrichProvidersWithWatchmode(movie.tmdb_id, tmdbProviders);
 
     await supabase
       .from("movies")
