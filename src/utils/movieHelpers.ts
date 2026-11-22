@@ -77,7 +77,7 @@ export function buildOfficialEmbedUrl(
 
   const ytId = extractYouTubeId(url);
   if (ytId) {
-    let embedUrl = `https://www.youtube.com/embed/${ytId}?autoplay=${autoplay}&controls=1&fs=1&rel=0&playsinline=1&cc_lang_pref=en`;
+    let embedUrl = `https://www.youtube.com/embed/${ytId}?autoplay=${autoplay}&controls=1&fs=1&rel=0&playsinline=1`;
     if (options?.start) embedUrl += `&start=${options.start}`;
     if (options?.end) embedUrl += `&end=${options.end}`;
     return { type: "youtube", embedUrl };
