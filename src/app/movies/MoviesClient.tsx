@@ -17,91 +17,152 @@ export default function MoviesClient({ initialMovies }: { initialMovies: any[] }
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Count helpers for clean filter dropdown labels (e.g. "India (8)")
-  const countryOptions = useMemo(() => {
-    const counts = new Map<string, number>();
-    initialMovies.forEach((m) => {
-      const c = normalizeValue(m.country);
-      if (c) counts.set(c, (counts.get(c) || 0) + 1);
-    });
-    return Array.from(counts.entries())
-      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-      .map(([name, count]) => ({ value: name, label: `${name} (${count})` }));
-  }, [initialMovies]);
-
-  const genreOptions = useMemo(() => {
-    const counts = new Map<string, number>();
-    initialMovies.forEach((m) => {
-      const movieGenres = Array.isArray(m.genres) && m.genres.length > 0 ? m.genres : m.category ? [m.category] : [];
-      movieGenres.forEach((g: string) => {
-        const clean = normalizeValue(g);
-        if (clean) counts.set(clean, (counts.get(clean) || 0) + 1);
-      });
-    });
-    return Array.from(counts.entries())
-      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-      .map(([name, count]) => ({ value: name, label: `${name} (${count})` }));
-  }, [initialMovies]);
-
-  const periodOptions = useMemo(() => {
-    const counts = new Map<string, number>();
-    initialMovies.forEach((m) => {
-      const p = normalizeValue(m.period) || (m.release_year ? `${Math.floor(m.release_year / 10) * 10}s` : "");
-      if (p) counts.set(p, (counts.get(p) || 0) + 1);
-    });
-    return Array.from(counts.entries())
-      .sort((a, b) => b[0].localeCompare(a[0]))
-      .map(([name, count]) => ({ value: name, label: `${name} (${count})` }));
-  }, [initialMovies]);
-
-  const tagOptions = useMemo(() => {
-    const counts = new Map<string, number>();
-    initialMovies.forEach((m) => {
-      (m.tags || []).forEach((t: string) => {
-        const clean = normalizeValue(t);
-        if (clean) counts.set(clean, (counts.get(clean) || 0) + 1);
-      });
-    });
-    return Array.from(counts.entries())
-      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-      .map(([name, count]) => ({ value: name, label: `${name} (${count})` }));
-  }, [initialMovies]);
-
   const currentMode = searchParams.get("mode") || "";
   const currentGenre = searchParams.get("genre") || searchParams.get("category") || "";
   const currentCountry = searchParams.get("country") || "";
   const currentPeriod = searchParams.get("period") || "";
   const currentTag = searchParams.get("tag") || "";
 
+  const matchesFilters = (
+    m: any,
+    filters: { mode: string; country: string; genre: string; period: string; tag: string }
+  ) => {
+    const mode = getWatchMode(m);
+    if (filters.mode === "free" && mode !== "embed" && mode !== "native") return false;
+    if (filters.mode === "ott" && mode !== "ott") return false;
+
+    if (filters.country) {
+      if (normalizeValue(m.country).toLowerCase() !== filters.country.toLowerCase()) return false;
+    }
+
+    if (filters.genre) {
+      const movieGenres =
+        Array.isArray(m.genres) && m.genres.length > 0 ? m.genres : m.category ? [m.category] : [];
+      const match = movieGenres.some(
+        (g: string) => normalizeValue(g).toLowerCase() === filters.genre.toLowerCase()
+      );
+      if (!match && normalizeValue(m.category).toLowerCase() !== filters.genre.toLowerCase()) {
+        return false;
+      }
+    }
+
+    if (filters.period) {
+      const effectivePeriod =
+        normalizeValue(m.period) || (m.release_year ? `${Math.floor(m.release_year / 10) * 10}s` : "");
+      if (effectivePeriod.toLowerCase() !== filters.period.toLowerCase()) return false;
+    }
+
+    if (filters.tag) {
+      const match = (m.tags || []).some(
+        (t: string) => normalizeValue(t).toLowerCase() === filters.tag.toLowerCase()
+      );
+      if (!match) return false;
+    }
+
+    return true;
+  };
+
+  // Faceted counts: each dropdown reflects movies matching all OTHER active filters
+  const countryOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    initialMovies
+      .filter((m) =>
+        matchesFilters(m, {
+          mode: currentMode,
+          country: "",
+          genre: currentGenre,
+          period: currentPeriod,
+          tag: currentTag,
+        })
+      )
+      .forEach((m) => {
+        const c = normalizeValue(m.country);
+        if (c) counts.set(c, (counts.get(c) || 0) + 1);
+      });
+    if (currentCountry && !counts.has(currentCountry)) counts.set(currentCountry, 0);
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([name, count]) => ({ value: name, label: `${name} (${count})` }));
+  }, [initialMovies, currentMode, currentCountry, currentGenre, currentPeriod, currentTag]);
+
+  const genreOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    initialMovies
+      .filter((m) =>
+        matchesFilters(m, {
+          mode: currentMode,
+          country: currentCountry,
+          genre: "",
+          period: currentPeriod,
+          tag: currentTag,
+        })
+      )
+      .forEach((m) => {
+        const movieGenres =
+          Array.isArray(m.genres) && m.genres.length > 0 ? m.genres : m.category ? [m.category] : [];
+        const unique = new Set<string>(movieGenres.map((g: string) => normalizeValue(g)).filter(Boolean));
+        unique.forEach((clean) => counts.set(clean, (counts.get(clean) || 0) + 1));
+      });
+    if (currentGenre && !counts.has(currentGenre)) counts.set(currentGenre, 0);
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([name, count]) => ({ value: name, label: `${name} (${count})` }));
+  }, [initialMovies, currentMode, currentCountry, currentGenre, currentPeriod, currentTag]);
+
+  const periodOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    initialMovies
+      .filter((m) =>
+        matchesFilters(m, {
+          mode: currentMode,
+          country: currentCountry,
+          genre: currentGenre,
+          period: "",
+          tag: currentTag,
+        })
+      )
+      .forEach((m) => {
+        const p = normalizeValue(m.period) || (m.release_year ? `${Math.floor(m.release_year / 10) * 10}s` : "");
+        if (p) counts.set(p, (counts.get(p) || 0) + 1);
+      });
+    if (currentPeriod && !counts.has(currentPeriod)) counts.set(currentPeriod, 0);
+    return Array.from(counts.entries())
+      .sort((a, b) => b[0].localeCompare(a[0]))
+      .map(([name, count]) => ({ value: name, label: `${name} (${count})` }));
+  }, [initialMovies, currentMode, currentCountry, currentGenre, currentPeriod, currentTag]);
+
+  const tagOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    initialMovies
+      .filter((m) =>
+        matchesFilters(m, {
+          mode: currentMode,
+          country: currentCountry,
+          genre: currentGenre,
+          period: currentPeriod,
+          tag: "",
+        })
+      )
+      .forEach((m) => {
+        const unique = new Set<string>((m.tags || []).map((t: string) => normalizeValue(t)).filter(Boolean));
+        unique.forEach((clean) => counts.set(clean, (counts.get(clean) || 0) + 1));
+      });
+    if (currentTag && !counts.has(currentTag)) counts.set(currentTag, 0);
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([name, count]) => ({ value: name, label: `${name} (${count})` }));
+  }, [initialMovies, currentMode, currentCountry, currentGenre, currentPeriod, currentTag]);
+
   const filteredMovies = useMemo(() => {
-    return initialMovies.filter((m) => {
-      const mode = getWatchMode(m);
-      if (currentMode === "free" && mode !== "embed" && mode !== "native") return false;
-      if (currentMode === "ott" && mode !== "ott") return false;
-
-      if (currentCountry) {
-        if (normalizeValue(m.country).toLowerCase() !== currentCountry.toLowerCase()) return false;
-      }
-
-      if (currentGenre) {
-        const movieGenres = Array.isArray(m.genres) && m.genres.length > 0 ? m.genres : m.category ? [m.category] : [];
-        const match = movieGenres.some((g: string) => normalizeValue(g).toLowerCase() === currentGenre.toLowerCase());
-        if (!match && normalizeValue(m.category).toLowerCase() !== currentGenre.toLowerCase()) return false;
-      }
-
-      if (currentPeriod) {
-        const effectivePeriod =
-          normalizeValue(m.period) || (m.release_year ? `${Math.floor(m.release_year / 10) * 10}s` : "");
-        if (effectivePeriod.toLowerCase() !== currentPeriod.toLowerCase()) return false;
-      }
-
-      if (currentTag) {
-        const match = (m.tags || []).some((t: string) => normalizeValue(t).toLowerCase() === currentTag.toLowerCase());
-        if (!match) return false;
-      }
-
-      return true;
-    });
+    return initialMovies.filter((m) =>
+      matchesFilters(m, {
+        mode: currentMode,
+        country: currentCountry,
+        genre: currentGenre,
+        period: currentPeriod,
+        tag: currentTag,
+      })
+    );
   }, [initialMovies, currentMode, currentGenre, currentCountry, currentPeriod, currentTag]);
 
   const updateFilter = (key: string, value: string) => {

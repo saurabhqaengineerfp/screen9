@@ -58,7 +58,7 @@ function normalizeVideoSource(videoUrl) {
     if (id) {
       return {
         videoSourceType: "youtube",
-        cleanVideoUrl: `https://www.youtube.com/embed/${id}?autoplay=1&controls=1&fs=1&rel=0&playsinline=1`,
+        cleanVideoUrl: `https://www.youtube.com/embed/${id}?autoplay=1&controls=1&fs=1&rel=0&playsinline=1&cc_lang_pref=en`,
         watchMode: "embed",
       };
     }

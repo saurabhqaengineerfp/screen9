@@ -46,6 +46,7 @@ Do **not** limit to YouTube and Vimeo. Search across the internet for legal, emb
   - Wikimedia Commons (public domain video files)
   - Official National Film Archives (e.g., NFB Canada, Mosfilm, NFDC/Cinemas of India, BFI, Library of Congress)
 - **Strictly Avoid:** Dodgy/pirate streaming sites, popup/ad-heavy mirror sites, or random unofficial re-uploads.
+- **English Subtitles Priority (Non-English Movies):** When a non-English movie has multiple official/licensed free uploads (e.g., on YouTube), **always prefer the version with built-in English subtitles** (hardcoded or official English CC track), because YouTube embeds often omit English from Auto-translate.
 
 ### Step 3: Save Queue & Show a Simple Table
 1. Save verified results to `movie-queue.json` at the project root for the Movie Adder agent.

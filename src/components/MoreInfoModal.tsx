@@ -164,6 +164,16 @@ export default function MoreInfoModal({
                     {isFree ? "Watch Full Film" : "Watch Trailer"}
                   </Link>
                 )}
+                {isFree && movie.id && movie.trailer_url && (
+                  <Link
+                    href={`/watch/${movie.id}?view=trailer`}
+                    className="btn-secondary"
+                    onClick={closeModal}
+                  >
+                    <Play size={14} />
+                    Watch Trailer
+                  </Link>
+                )}
                 {!isFree && watchExternalUrl && (
                   <a
                     href={watchExternalUrl}

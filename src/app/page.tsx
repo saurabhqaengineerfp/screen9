@@ -106,9 +106,7 @@ export default async function Home() {
     <main className={styles.main}>
       {/* Apple TV+ Full-Bleed Editorial Hero */}
       <section className={styles.hero}>
-        <div className={styles.heroBackground}>
-          <HeroVideo movie={heroMovie} />
-        </div>
+        <HeroVideo movie={heroMovie} />
 
         <div className={styles.heroInner}>
           <div className={`animate-fade-in ${styles.heroContent}`}>

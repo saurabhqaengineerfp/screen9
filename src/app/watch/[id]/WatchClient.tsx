@@ -12,7 +12,7 @@ import {
   VolumeX,
   ExternalLink,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import styles from "./watch.module.css";
 import {
@@ -27,8 +27,13 @@ import {
 
 export default function WatchClient({ movie }: { movie: any }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  const [embedView, setEmbedView] = useState<"full" | "trailer">(
+    searchParams.get("view") === "trailer" ? "trailer" : "full"
+  );
 
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
@@ -138,6 +143,13 @@ export default function WatchClient({ movie }: { movie: any }) {
 
   // MODE 1: Official YouTube / Vimeo full-movie embed (100% ToS-compliant, uncropped)
   if (mode === "embed" && fullEmbed && fullEmbed.type !== "native") {
+    const hasTrailer = Boolean(trailerEmbed && trailerEmbed.type !== "native");
+    const trailerAutoplayEmbed = hasTrailer
+      ? buildOfficialEmbedUrl(movie.trailer_url, { autoplay: true })
+      : null;
+    const showingTrailer = embedView === "trailer" && Boolean(trailerAutoplayEmbed);
+    const activeSrc = showingTrailer ? trailerAutoplayEmbed!.embedUrl : fullEmbed.embedUrl;
+
     return (
       <div className={styles.embedShell}>
         <header className={styles.cinemaBar}>
@@ -152,17 +164,41 @@ export default function WatchClient({ movie }: { movie: any }) {
             <span className={styles.cinemaMeta}>
               {movie.release_year || ""}
               {runtime ? ` · ${runtime}` : ""}
-              {movie.source_channel ? ` · ${movie.source_channel}` : ""}
+              {movie.source_channel && !showingTrailer ? ` · ${movie.source_channel}` : ""}
             </span>
           </div>
 
-          <span className={styles.modeTag}>OFFICIAL EMBED</span>
+          {hasTrailer ? (
+            <div className={styles.viewToggle} role="tablist" aria-label="Playback view">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={!showingTrailer}
+                onClick={() => setEmbedView("full")}
+                className={`${styles.viewToggleBtn} ${!showingTrailer ? styles.viewToggleActive : ""}`}
+              >
+                Full Film
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={showingTrailer}
+                onClick={() => setEmbedView("trailer")}
+                className={`${styles.viewToggleBtn} ${showingTrailer ? styles.viewToggleActive : ""}`}
+              >
+                Trailer
+              </button>
+            </div>
+          ) : (
+            <span className={styles.modeTag}>OFFICIAL EMBED</span>
+          )}
         </header>
 
         <div className={styles.iframeStage}>
           <iframe
-            src={fullEmbed.embedUrl}
-            title={movie.title}
+            key={showingTrailer ? "trailer" : "full"}
+            src={activeSrc}
+            title={showingTrailer ? `${movie.title} — Official Trailer` : movie.title}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
             referrerPolicy="strict-origin-when-cross-origin"
             allowFullScreen

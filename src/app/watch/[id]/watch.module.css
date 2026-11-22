@@ -80,6 +80,45 @@
   white-space: nowrap;
 }
 
+.viewToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.viewToggleBtn {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: var(--fg-secondary);
+  background: transparent;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.viewToggleBtn:hover {
+  color: var(--fg);
+}
+
+.viewToggleActive {
+  background: var(--accent);
+  color: #050505;
+  font-weight: 600;
+}
+
+.viewToggleActive:hover {
+  color: #050505;
+}
+
 /* Mode 1: Clean Full-Viewport Official Embed */
 .iframeStage {
   flex: 1;

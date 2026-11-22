@@ -32,7 +32,7 @@ function normalizeVideoSource(videoUrl?: string | null): {
   if (ytId) {
     return {
       videoSourceType: "youtube",
-      cleanVideoUrl: `https://www.youtube.com/embed/${ytId}?autoplay=1&controls=1&rel=0&playsinline=1`,
+      cleanVideoUrl: `https://www.youtube.com/embed/${ytId}?autoplay=1&controls=1&rel=0&playsinline=1&cc_lang_pref=en`,
       watchMode: "embed",
     };
   }
