@@ -57,7 +57,7 @@ export default function WatchClient({ movie }: { movie: any }) {
         })
       : null;
 
-  const trailerEmbed = buildOfficialEmbedUrl(movie.trailer_url, { autoplay: false });
+  const trailerEmbed = buildOfficialEmbedUrl(movie.trailer_url, { autoplay: true });
 
   // Auto-hide UI for native HTML5 player
   const handleMouseMove = useCallback(() => {
