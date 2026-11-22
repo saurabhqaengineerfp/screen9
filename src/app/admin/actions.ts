@@ -1,7 +1,14 @@
 "use server";
 
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-import { extractVimeoId, extractYouTubeId, SUPPORTED_REGIONS, WatchProvidersMap } from "@/utils/movieHelpers";
+import {
+  extractArchiveOrgId,
+  extractDailymotionId,
+  extractVimeoId,
+  extractYouTubeId,
+  SUPPORTED_REGIONS,
+  WatchProvidersMap,
+} from "@/utils/movieHelpers";
 
 const getAdminSupabase = () => {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -34,6 +41,24 @@ function normalizeVideoSource(videoUrl?: string | null): {
     return {
       videoSourceType: "vimeo",
       cleanVideoUrl: `https://player.vimeo.com/video/${vimeoId}?autoplay=1`,
+      watchMode: "embed",
+    };
+  }
+
+  const archiveId = extractArchiveOrgId(trimmed);
+  if (archiveId) {
+    return {
+      videoSourceType: "vimeo", // kept compatible with existing DB constraint; watch_mode='embed' drives playback
+      cleanVideoUrl: `https://archive.org/embed/${archiveId}`,
+      watchMode: "embed",
+    };
+  }
+
+  const dmId = extractDailymotionId(trimmed);
+  if (dmId) {
+    return {
+      videoSourceType: "vimeo", // kept compatible with existing DB constraint; watch_mode='embed' drives playback
+      cleanVideoUrl: `https://www.dailymotion.com/embed/video/${dmId}`,
       watchMode: "embed",
     };
   }

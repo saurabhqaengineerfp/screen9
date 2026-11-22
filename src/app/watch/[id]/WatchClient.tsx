@@ -18,6 +18,7 @@ import styles from "./watch.module.css";
 import {
   buildOfficialEmbedUrl,
   formatRuntime,
+  getProviderDirectUrl,
   getRegionProviders,
   getTmdbWatchUrl,
   getWatchMode,
@@ -259,7 +260,7 @@ export default function WatchClient({ movie }: { movie: any }) {
                   {streamProviders.map((p) => (
                     <a
                       key={p.provider_id}
-                      href={watchExternalUrl || "#"}
+                      href={getProviderDirectUrl(p.provider_name, movie.title, movie.release_year, watchExternalUrl)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className={styles.providerRow}
@@ -286,7 +287,7 @@ export default function WatchClient({ movie }: { movie: any }) {
                   {rentBuyProviders.slice(0, 6).map((p) => (
                     <a
                       key={p.provider_id}
-                      href={watchExternalUrl || "#"}
+                      href={getProviderDirectUrl(p.provider_name, movie.title, movie.release_year, watchExternalUrl)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className={styles.providerRow}

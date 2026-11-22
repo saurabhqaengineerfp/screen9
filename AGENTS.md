@@ -35,4 +35,8 @@ This file contains crucial project context for AI coding assistants working on t
 - Do **not** accidentally import or re-introduce Tailwind classes.
 - Do **not** commit hardcoded database passwords or secret keys.
 
+## 6. Communication Style (Permanent Rule)
+- **Keep answers short, clear, and to the point.** Avoid long paragraphs—use short bullet points.
+- **Use extremely beginner-friendly, everyday language.** Treat the user as a non-technical person; avoid tech jargon and explain things simply.
+
 When given a task, always refer back to these rules to ensure consistency with the established architecture and design!

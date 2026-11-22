@@ -7,6 +7,7 @@ import { Play, Info, X, ExternalLink } from "lucide-react";
 import styles from "./MoreInfoModal.module.css";
 import {
   formatRuntime,
+  getProviderDirectUrl,
   getRegionProviders,
   getTmdbWatchUrl,
   getWatchMode,
@@ -212,7 +213,7 @@ export default function MoreInfoModal({
                       {streamProviders.map((p) => (
                         <a
                           key={p.provider_id}
-                          href={watchExternalUrl || "#"}
+                          href={getProviderDirectUrl(p.provider_name, movie.title, movie.release_year, watchExternalUrl)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className={styles.providerChip}
@@ -236,7 +237,7 @@ export default function MoreInfoModal({
                       {rentBuyProviders.slice(0, 6).map((p) => (
                         <a
                           key={p.provider_id}
-                          href={watchExternalUrl || "#"}
+                          href={getProviderDirectUrl(p.provider_name, movie.title, movie.release_year, watchExternalUrl)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className={styles.providerChip}

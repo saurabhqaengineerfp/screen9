@@ -39,6 +39,18 @@ export function extractVimeoId(url?: string | null): string | null {
   return match ? match[1] : null;
 }
 
+export function extractArchiveOrgId(url?: string | null): string | null {
+  if (!url) return null;
+  const match = url.match(/archive\.org\/(?:details|embed)\/([^/?#]+)/);
+  return match ? match[1] : null;
+}
+
+export function extractDailymotionId(url?: string | null): string | null {
+  if (!url) return null;
+  const match = url.match(/(?:dailymotion\.com\/(?:embed\/)?video\/|dai\.ly\/)([a-zA-Z0-9]+)/);
+  return match ? match[1] : null;
+}
+
 /**
  * Determine effective watch mode for a movie (backwards compatible with legacy rows).
  */
@@ -58,7 +70,7 @@ export function getWatchMode(movie: any): WatchMode {
 export function buildOfficialEmbedUrl(
   url?: string | null,
   options?: { autoplay?: boolean; start?: number | null; end?: number | null }
-): { type: "youtube" | "vimeo" | "native"; embedUrl: string } | null {
+): { type: "youtube" | "vimeo" | "archive" | "dailymotion" | "native"; embedUrl: string } | null {
   if (!url) return null;
   const autoplay = options?.autoplay ? 1 : 0;
 
@@ -74,6 +86,18 @@ export function buildOfficialEmbedUrl(
   if (vimeoId) {
     const embedUrl = `https://player.vimeo.com/video/${vimeoId}?autoplay=${autoplay}`;
     return { type: "vimeo", embedUrl };
+  }
+
+  const archiveId = extractArchiveOrgId(url);
+  if (archiveId) {
+    const embedUrl = `https://archive.org/embed/${archiveId}${autoplay ? "?autoplay=1" : ""}`;
+    return { type: "archive", embedUrl };
+  }
+
+  const dmId = extractDailymotionId(url);
+  if (dmId) {
+    const embedUrl = `https://www.dailymotion.com/embed/video/${dmId}${autoplay ? "?autoplay=1" : ""}`;
+    return { type: "dailymotion", embedUrl };
   }
 
   return { type: "native", embedUrl: url };
@@ -116,4 +140,49 @@ export function getRegionProviders(
 export function getTmdbWatchUrl(movie: any): string | null {
   if (!movie?.tmdb_id) return null;
   return `https://www.themoviedb.org/movie/${movie.tmdb_id}/watch`;
+}
+
+/**
+ * Build a direct platform URL for a given streaming provider so clicking
+ * YouTube, Netflix, Prime, Apple TV, etc. takes the user straight to that platform.
+ */
+export function getProviderDirectUrl(
+  providerName: string,
+  movieTitle: string,
+  releaseYear?: number | null,
+  fallbackUrl?: string | null
+): string {
+  const name = (providerName || "").toLowerCase();
+  const titleQuery = encodeURIComponent(movieTitle);
+  const titleWithYear = encodeURIComponent(
+    releaseYear ? `${movieTitle} ${releaseYear} movie` : `${movieTitle} movie`
+  );
+
+  if (name.includes("youtube")) return `https://www.youtube.com/results?search_query=${titleWithYear}`;
+  if (name.includes("netflix")) return `https://www.netflix.com/search?q=${titleQuery}`;
+  if (name.includes("amazon") || name.includes("prime video"))
+    return `https://www.primevideo.com/search?phrase=${titleQuery}`;
+  if (name.includes("apple tv")) return `https://tv.apple.com/search?term=${titleQuery}`;
+  if (name.includes("hotstar")) return `https://www.hotstar.com/in/explore?search_query=${titleQuery}`;
+  if (name.includes("disney")) return `https://www.disneyplus.com/search?q=${titleQuery}`;
+  if (name.includes("mubi")) return `https://mubi.com/en/search?query=${titleQuery}`;
+  if (name.includes("criterion")) return `https://www.criterionchannel.com/search?q=${titleQuery}`;
+  if (name.includes("paramount")) return `https://www.paramountplus.com/search/?q=${titleQuery}`;
+  if (name.includes("hbo") || name === "max") return `https://play.max.com/search?q=${titleQuery}`;
+  if (name.includes("hulu")) return `https://www.hulu.com/search?q=${titleQuery}`;
+  if (name.includes("tubi")) return `https://tubitv.com/search/${titleQuery}`;
+  if (name.includes("plex")) return `https://watch.plex.tv/search?q=${titleQuery}`;
+  if (name.includes("kanopy")) return `https://www.kanopy.com/en/search?query=${titleQuery}`;
+  if (name.includes("hoopla")) return `https://www.hoopladigital.com/search?q=${titleQuery}&type=direct`;
+  if (name.includes("google play")) return `https://play.google.com/store/search?q=${titleQuery}&c=movies`;
+  if (name.includes("rakuten")) return `https://www.rakuten.tv/search?q=${titleQuery}`;
+  if (name.includes("sky store")) return `https://www.skystore.com/search?q=${titleQuery}`;
+  if (name.includes("zee5")) return `https://www.zee5.com/search?q=${titleQuery}`;
+  if (name.includes("sonyliv")) return `https://www.sonyliv.com/search?q=${titleQuery}`;
+  if (name.includes("jiocinema")) return `https://www.jiocinema.com/search?q=${titleQuery}`;
+  if (name.includes("hoichoi")) return `https://www.hoichoi.tv/search?q=${titleQuery}`;
+  if (name.includes("starz")) return `https://www.starz.com/us/en/search?q=${titleQuery}`;
+  if (name.includes("peacock")) return `https://www.peacocktv.com/watch/search?q=${titleQuery}`;
+
+  return fallbackUrl || "#";
 }
