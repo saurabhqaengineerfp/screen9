@@ -17,8 +17,12 @@ create table public.movies (
   release_year integer,
   genres text[],
   category text, -- e.g., 'Indian Masterpieces', 'Sci-Fi Essentials'
-  video_source_type text check (video_source_type in ('youtube', 'vimeo', 'native')) not null,
-  video_url text not null, -- The youtube link or the Cloudflare R2 native link
+  video_source_type text check (video_source_type is null or video_source_type in ('youtube', 'vimeo', 'native', 'ott')),
+  video_url text, -- Official free YouTube/Vimeo embed or native HLS URL (nullable for OTT-only curated films)
+  watch_mode text check (watch_mode in ('embed', 'ott', 'native')) default 'embed',
+  curator_note text, -- Short editorial note on why this film made the cut
+  source_channel text, -- Official YouTube/Vimeo uploader channel name
+  watch_providers jsonb, -- Cached TMDB Watch Providers by region (US, IN, GB, CA, AU)
   tmdb_id integer, -- To fetch additional data later if needed
   duration integer, -- in seconds
   cast_members text[], -- array of top cast members

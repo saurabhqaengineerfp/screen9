@@ -1,17 +1,28 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { ArrowLeft, Play, Pause, FastForward, Rewind, Maximize, Volume2, VolumeX } from "lucide-react";
+import {
+  ArrowLeft,
+  Play,
+  Pause,
+  FastForward,
+  Rewind,
+  Maximize,
+  Volume2,
+  VolumeX,
+  ExternalLink,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import styles from "./watch.module.css";
-
-function extractYouTubeId(url: string): string | null {
-  if (!url) return null;
-  if (url.includes("/embed/")) return url.split("/embed/")[1].split("?")[0];
-  if (url.includes("v=")) return url.split("v=")[1].split("&")[0];
-  if (url.includes("youtu.be/")) return url.split("youtu.be/")[1].split("?")[0];
-  return null;
-}
+import {
+  buildOfficialEmbedUrl,
+  formatRuntime,
+  getRegionProviders,
+  getTmdbWatchUrl,
+  getWatchMode,
+  SUPPORTED_REGIONS,
+} from "@/utils/movieHelpers";
 
 export default function WatchClient({ movie }: { movie: any }) {
   const router = useRouter();
@@ -24,14 +35,25 @@ export default function WatchClient({ movie }: { movie: any }) {
   const [played, setPlayed] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1);
-  const [showDetails, setShowDetails] = useState(true);
   const [showUI, setShowUI] = useState(true);
+  const [region, setRegion] = useState<string>("US");
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const videoId = extractYouTubeId(movie.video_url || "");
-  const isYouTube = !!videoId;
+  const mode = getWatchMode(movie);
+  const runtime = formatRuntime(movie);
 
-  // Auto-hide UI (for HTML5 video)
+  const fullEmbed =
+    mode === "embed"
+      ? buildOfficialEmbedUrl(movie.video_url, {
+          autoplay: true,
+          start: movie.start_time,
+          end: movie.end_time,
+        })
+      : null;
+
+  const trailerEmbed = buildOfficialEmbedUrl(movie.trailer_url, { autoplay: false });
+
+  // Auto-hide UI for native HTML5 player
   const handleMouseMove = useCallback(() => {
     setShowUI(true);
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -41,7 +63,7 @@ export default function WatchClient({ movie }: { movie: any }) {
   }, [playing]);
 
   useEffect(() => {
-    if (!isYouTube) {
+    if (mode === "native") {
       if (!playing) {
         setShowUI(true);
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -49,15 +71,8 @@ export default function WatchClient({ movie }: { movie: any }) {
         handleMouseMove();
       }
     }
-  }, [playing, handleMouseMove, isYouTube]);
+  }, [playing, handleMouseMove, mode]);
 
-  // Hide details after 20 seconds
-  useEffect(() => {
-    const timer = setTimeout(() => setShowDetails(false), 20000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // HTML5 Video Event Handlers
   const handleTimeUpdate = () => {
     if (videoRef.current) {
       setPlayed(videoRef.current.currentTime / (videoRef.current.duration || 1));
@@ -66,72 +81,25 @@ export default function WatchClient({ movie }: { movie: any }) {
 
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
-      if (movie.start_time) {
-        videoRef.current.currentTime = movie.start_time;
-      }
+      if (movie.start_time) videoRef.current.currentTime = movie.start_time;
       setDuration(videoRef.current.duration);
-      // Auto-play might be blocked by browser policy without mute, but we try:
-      videoRef.current.play().catch(() => {
-        setPlaying(false);
-      });
+      videoRef.current.play().catch(() => setPlaying(false));
     }
   };
 
-  const handleVideoPlay = () => setPlaying(true);
-  const handleVideoPause = () => setPlaying(false);
-  const handleVideoEnded = () => {
-    setPlaying(false);
-    setPlayed(1);
-  };
-
-  // Player control handlers
   const togglePlay = () => {
-    if (videoRef.current) {
-      if (playing) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-    }
-  };
-
-  const handlePlayPause = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    togglePlay();
+    if (!videoRef.current) return;
+    if (playing) videoRef.current.pause();
+    else videoRef.current.play();
   };
 
   const handleSeekChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = parseFloat(e.target.value);
-    setPlayed(val);
+    setPlayed(parseFloat(e.target.value));
   };
 
   const handleSeekMouseUp = (e: React.MouseEvent<HTMLInputElement>) => {
     const val = parseFloat((e.target as HTMLInputElement).value);
-    if (videoRef.current) {
-      videoRef.current.currentTime = val * duration;
-    }
-  };
-
-  const handleRewind = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (videoRef.current) {
-      videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime - 10);
-    }
-  };
-
-  const handleFastForward = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (videoRef.current) {
-      videoRef.current.currentTime = Math.min(duration, videoRef.current.currentTime + 10);
-    }
-  };
-
-  const toggleMute = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (videoRef.current) {
-      videoRef.current.muted = !muted;
-      setMuted(!muted);
-    }
+    if (videoRef.current) videoRef.current.currentTime = val * duration;
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -139,48 +107,22 @@ export default function WatchClient({ movie }: { movie: any }) {
     setVolume(val);
     if (videoRef.current) {
       videoRef.current.volume = val / 100;
-      if (val === 0) {
-        videoRef.current.muted = true;
-        setMuted(true);
-      } else if (muted) {
-        videoRef.current.muted = false;
-        setMuted(false);
-      }
-    }
-  };
-
-  const handlePlaybackRate = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const newRate = playbackRate === 1 ? 1.5 : 1;
-    setPlaybackRate(newRate);
-    if (videoRef.current) {
-      videoRef.current.playbackRate = newRate;
+      videoRef.current.muted = val === 0;
+      setMuted(val === 0);
     }
   };
 
   const toggleFullscreen = (e: React.MouseEvent) => {
     e.stopPropagation();
-    
     const doc = document as any;
     if (!doc.fullscreenElement && !doc.webkitFullscreenElement) {
       if (containerRef.current?.requestFullscreen) {
-        containerRef.current.requestFullscreen().then(() => {
-          try {
-            if (screen.orientation && (screen.orientation as any).lock) {
-              (screen.orientation as any).lock("landscape").catch(() => {});
-            }
-          } catch (err) {}
-        }).catch(() => {});
+        containerRef.current.requestFullscreen().catch(() => {});
       } else if ((videoRef.current as any)?.webkitEnterFullscreen) {
-        // iOS Safari fallback
         (videoRef.current as any).webkitEnterFullscreen();
       }
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      } else if (doc.webkitExitFullscreen) {
-        doc.webkitExitFullscreen();
-      }
+    } else if (document.exitFullscreen) {
+      document.exitFullscreen();
     }
   };
 
@@ -193,87 +135,263 @@ export default function WatchClient({ movie }: { movie: any }) {
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
-  const currentTime = played * duration;
-
-  // Render simple YouTube iframe
-  if (isYouTube) {
-    let youtubeUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&rel=0&modestbranding=1&playsinline=1`;
-    if (movie.start_time) youtubeUrl += `&start=${movie.start_time}`;
-    if (movie.end_time) youtubeUrl += `&end=${movie.end_time}`;
-
+  // MODE 1: Official YouTube / Vimeo full-movie embed (100% ToS-compliant, uncropped)
+  if (mode === "embed" && fullEmbed && fullEmbed.type !== "native") {
     return (
-      <div className={styles.playerContainer} ref={containerRef}>
-        <div className={styles.youtubeTopBar}>
-          <button onClick={() => router.back()} className={styles.backBtn}>
-            <ArrowLeft size={32} />
+      <div className={styles.embedShell}>
+        <header className={styles.cinemaBar}>
+          <button type="button" onClick={() => router.back()} className={styles.backLink}>
+            <ArrowLeft size={16} />
+            <span>Back</span>
           </button>
+
+          <div className={styles.cinemaTitleGroup}>
+            <span className={styles.amberDot} />
+            <h1 className={styles.cinemaTitle}>{movie.title}</h1>
+            <span className={styles.cinemaMeta}>
+              {movie.release_year || ""}
+              {runtime ? ` · ${runtime}` : ""}
+              {movie.source_channel ? ` · ${movie.source_channel}` : ""}
+            </span>
+          </div>
+
+          <span className={styles.modeTag}>OFFICIAL EMBED</span>
+        </header>
+
+        <div className={styles.iframeStage}>
+          <iframe
+            src={fullEmbed.embedUrl}
+            title={movie.title}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+            referrerPolicy="strict-origin-when-cross-origin"
+            allowFullScreen
+            className={styles.officialIframe}
+          />
         </div>
-        <iframe
-          src={youtubeUrl}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          className={styles.nativeYoutubeIframe}
-        />
       </div>
     );
   }
 
-  // Render custom HTML5 player
+  // MODE 2: Partner OTT film (official trailer + Where to Stream providers)
+  if (mode === "ott" || !movie.video_url) {
+    const { data: regionProviders } = getRegionProviders(movie.watch_providers, region);
+    const streamProviders = [
+      ...(regionProviders?.flatrate || []),
+      ...(regionProviders?.free || []),
+      ...(regionProviders?.ads || []),
+    ];
+    const rentBuyProviders = [...(regionProviders?.rent || []), ...(regionProviders?.buy || [])].filter(
+      (p, idx, arr) => arr.findIndex((x) => x.provider_id === p.provider_id) === idx
+    );
+    const watchExternalUrl = regionProviders?.link || getTmdbWatchUrl(movie);
+
+    return (
+      <div className={styles.ottPage}>
+        <header className={styles.cinemaBar}>
+          <button type="button" onClick={() => router.back()} className={styles.backLink}>
+            <ArrowLeft size={16} />
+            <span>Back</span>
+          </button>
+          <div className={styles.cinemaTitleGroup}>
+            <h1 className={styles.cinemaTitle}>{movie.title}</h1>
+            <span className={styles.cinemaMeta}>
+              {movie.release_year || ""}
+              {movie.country ? ` · ${String(movie.country).toUpperCase()}` : ""}
+              {runtime ? ` · ${runtime}` : ""}
+            </span>
+          </div>
+          <span className={styles.modeTag}>TRAILER + OTT</span>
+        </header>
+
+        <div className={styles.ottLayout}>
+          <div className={styles.trailerStage}>
+            {trailerEmbed && trailerEmbed.type !== "native" ? (
+              <iframe
+                src={trailerEmbed.embedUrl}
+                title={`${movie.title} — Official Trailer`}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+                className={styles.officialIframe}
+              />
+            ) : movie.backdrop_url ? (
+              <div className={styles.stillFallback}>
+                <Image
+                  src={movie.backdrop_url}
+                  alt={movie.title}
+                  fill
+                  unoptimized
+                  style={{ objectFit: "cover" }}
+                />
+              </div>
+            ) : (
+              <div className={styles.noTrailer}>NO OFFICIAL TRAILER AVAILABLE</div>
+            )}
+          </div>
+
+          <aside className={styles.ottSidebar}>
+            {movie.curator_note && (
+              <div className={styles.curatorCard}>
+                <span className={styles.label}>CURATOR NOTE</span>
+                <p className={styles.curatorQuote}>“{movie.curator_note}”</p>
+              </div>
+            )}
+
+            <div className={styles.providersCard}>
+              <div className={styles.providersTop}>
+                <span className={styles.label}>WHERE TO STREAM</span>
+                <div className={styles.regionRow}>
+                  {SUPPORTED_REGIONS.map((r) => (
+                    <button
+                      key={r.code}
+                      type="button"
+                      onClick={() => setRegion(r.code)}
+                      className={`${styles.regionBtn} ${region === r.code ? styles.regionActive : ""}`}
+                    >
+                      {r.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {streamProviders.length > 0 ? (
+                <div className={styles.providerList}>
+                  {streamProviders.map((p) => (
+                    <a
+                      key={p.provider_id}
+                      href={watchExternalUrl || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.providerRow}
+                    >
+                      <div className={styles.providerLeft}>
+                        {p.logo_path && (
+                          <Image
+                            src={`https://image.tmdb.org/t/p/w45${p.logo_path}`}
+                            alt={p.provider_name}
+                            width={24}
+                            height={24}
+                            unoptimized
+                            className={styles.providerLogo}
+                          />
+                        )}
+                        <span>{p.provider_name}</span>
+                      </div>
+                      <ExternalLink size={14} className={styles.extIcon} />
+                    </a>
+                  ))}
+                </div>
+              ) : rentBuyProviders.length > 0 ? (
+                <div className={styles.providerList}>
+                  {rentBuyProviders.slice(0, 6).map((p) => (
+                    <a
+                      key={p.provider_id}
+                      href={watchExternalUrl || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.providerRow}
+                    >
+                      <div className={styles.providerLeft}>
+                        {p.logo_path && (
+                          <Image
+                            src={`https://image.tmdb.org/t/p/w45${p.logo_path}`}
+                            alt={p.provider_name}
+                            width={24}
+                            height={24}
+                            unoptimized
+                            className={styles.providerLogo}
+                          />
+                        )}
+                        <span>{p.provider_name} (Rent/Buy)</span>
+                      </div>
+                      <ExternalLink size={14} className={styles.extIcon} />
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <p className={styles.emptyProviders}>
+                  No subscription provider cached for {region}.
+                </p>
+              )}
+
+              {watchExternalUrl && (
+                <a
+                  href={watchExternalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`btn-primary ${styles.tmdbWatchBtn}`}
+                >
+                  Open All Streaming Options <ExternalLink size={14} />
+                </a>
+              )}
+            </div>
+
+            <div className={styles.synopsisCard}>
+              <span className={styles.label}>SYNOPSIS</span>
+              <p className={styles.synopsisText}>{movie.description}</p>
+              {movie.director && (
+                <div className={styles.metaLine}>
+                  <span>DIRECTOR</span>
+                  <strong>{movie.director}</strong>
+                </div>
+              )}
+              {movie.cast_members && movie.cast_members.length > 0 && (
+                <div className={styles.metaLine}>
+                  <span>CAST</span>
+                  <strong>{movie.cast_members.join(", ")}</strong>
+                </div>
+              )}
+            </div>
+          </aside>
+        </div>
+      </div>
+    );
+  }
+
+  // MODE 3: Native HTML5 video player (future Step 2 Bunny Stream HLS / direct MP4)
+  const currentTime = played * duration;
+
   return (
-    <div
-      className={styles.playerContainer}
-      ref={containerRef}
-      onMouseMove={handleMouseMove}
-    >
-      <div className={styles.playerWrapper} style={{ pointerEvents: playing ? 'none' : 'auto' }}>
+    <div className={styles.playerContainer} ref={containerRef} onMouseMove={handleMouseMove}>
+      <div className={styles.playerWrapper} style={{ pointerEvents: playing ? "none" : "auto" }}>
         <video
           ref={videoRef}
           src={movie.video_url}
           className={styles.htmlVideo}
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
-          onPlay={handleVideoPlay}
-          onPause={handleVideoPause}
-          onEnded={handleVideoEnded}
+          onPlay={() => setPlaying(true)}
+          onPause={() => setPlaying(false)}
+          onEnded={() => {
+            setPlaying(false);
+            setPlayed(1);
+          }}
           autoPlay
           playsInline
         />
       </div>
 
-      <div 
-        className={styles.clickArea} 
-        onClick={togglePlay} 
-        style={{ pointerEvents: playing ? 'auto' : 'none' }}
+      <div
+        className={styles.clickArea}
+        onClick={togglePlay}
+        style={{ pointerEvents: playing ? "auto" : "none" }}
       />
 
       <div className={`${styles.overlay} ${showUI ? styles.visible : styles.hidden}`}>
         <div className={styles.topBar}>
-          <button onClick={(e) => { e.stopPropagation(); router.back(); }} className={styles.backBtn}>
-            <ArrowLeft size={32} />
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              router.back();
+            }}
+            className={styles.backLink}
+          >
+            <ArrowLeft size={18} />
+            <span>Back</span>
           </button>
+          <span className={styles.titleText}>{movie.title}</span>
         </div>
-
-        {(showDetails || !playing) && (
-          <div className={`${styles.centerDetails} ${showDetails && playing ? styles.detailsFadeOut : ''}`}>
-            <h1 className={styles.movieTitle}>{movie.title}</h1>
-            
-            {(movie.director || (movie.cast_members && movie.cast_members.length > 0)) && (
-              <div className={styles.creditsContainer}>
-                {movie.director && <p className={styles.creditLine}><strong>Director:</strong> {movie.director}</p>}
-                {movie.cast_members && movie.cast_members.length > 0 && (
-                  <p className={styles.creditLine}><strong>Starring:</strong> {movie.cast_members.join(', ')}</p>
-                )}
-              </div>
-            )}
-            
-            <p className={styles.movieDesc}>{movie.description}</p>
-            {!playing && (
-              <button className={styles.bigPlayBtn} onClick={handlePlayPause}>
-                <Play fill="white" size={48} />
-              </button>
-            )}
-          </div>
-        )}
 
         <div className={styles.bottomControls} onClick={(e) => e.stopPropagation()}>
           <div className={styles.progressBarContainer}>
@@ -294,18 +412,39 @@ export default function WatchClient({ movie }: { movie: any }) {
 
           <div className={styles.controlsRow}>
             <div className={styles.leftControls}>
-              <button onClick={handlePlayPause} className={styles.iconBtn}>
-                {playing ? <Pause fill="currentColor" size={28} /> : <Play fill="currentColor" size={28} />}
+              <button type="button" onClick={togglePlay} className={styles.iconBtn}>
+                {playing ? <Pause fill="currentColor" size={22} /> : <Play fill="currentColor" size={22} />}
               </button>
-              <button onClick={handleRewind} className={styles.iconBtn}>
-                <Rewind fill="currentColor" size={24} />
+              <button
+                type="button"
+                onClick={() => {
+                  if (videoRef.current) videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime - 10);
+                }}
+                className={styles.iconBtn}
+              >
+                <Rewind size={20} />
               </button>
-              <button onClick={handleFastForward} className={styles.iconBtn}>
-                <FastForward fill="currentColor" size={24} />
+              <button
+                type="button"
+                onClick={() => {
+                  if (videoRef.current) videoRef.current.currentTime = Math.min(duration, videoRef.current.currentTime + 10);
+                }}
+                className={styles.iconBtn}
+              >
+                <FastForward size={20} />
               </button>
               <div className={styles.volumeGroup}>
-                <button onClick={toggleMute} className={styles.iconBtn}>
-                  {muted ? <VolumeX size={24} /> : <Volume2 size={24} />}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (videoRef.current) {
+                      videoRef.current.muted = !muted;
+                      setMuted(!muted);
+                    }
+                  }}
+                  className={styles.iconBtn}
+                >
+                  {muted ? <VolumeX size={20} /> : <Volume2 size={20} />}
                 </button>
                 <input
                   type="range"
@@ -317,15 +456,22 @@ export default function WatchClient({ movie }: { movie: any }) {
                   className={styles.volumeSlider}
                 />
               </div>
-              <span className={styles.titleText}>{movie.title}</span>
             </div>
 
             <div className={styles.rightControls}>
-              <button className={styles.textBtn} onClick={handlePlaybackRate}>
+              <button
+                type="button"
+                className={styles.textBtn}
+                onClick={() => {
+                  const newRate = playbackRate === 1 ? 1.5 : 1;
+                  setPlaybackRate(newRate);
+                  if (videoRef.current) videoRef.current.playbackRate = newRate;
+                }}
+              >
                 {playbackRate}x
               </button>
-              <button onClick={toggleFullscreen} className={styles.iconBtn}>
-                <Maximize size={24} />
+              <button type="button" onClick={toggleFullscreen} className={styles.iconBtn}>
+                <Maximize size={20} />
               </button>
             </div>
           </div>
