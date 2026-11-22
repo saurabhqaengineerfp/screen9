@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { addMovie, deleteMovie, syncAllMoviesFromTmdb, updateMovie } from "./actions";
 import styles from "./admin.module.css";
-import { Trash2, Edit, PlusCircle, ListVideo, Tags, RefreshCw } from "lucide-react";
+import { Trash2, Edit, PlusCircle, ListVideo, Tags, RefreshCw, ArrowLeft } from "lucide-react";
 import { getWatchMode } from "@/utils/movieHelpers";
 
 type Tab = "add_movie" | "manage_movies" | "manage_categories";
@@ -160,6 +161,10 @@ export default function AdminClient({
         >
           <Tags size={16} /> Categories ({categories.length})
         </button>
+
+        <Link href="/" className={styles.backSiteLink}>
+          <ArrowLeft size={14} /> Back to Screen9
+        </Link>
       </aside>
 
       <main className={styles.mainContent}>
@@ -167,7 +172,8 @@ export default function AdminClient({
         {error && <div className={styles.error}>{error}</div>}
 
         {activeTab === "add_movie" && (
-          <div className={styles.card}>
+          <div className={styles.contentInner}>
+            <div className={styles.card}>
             <h1 className={styles.title}>Curate a Film</h1>
             <p className={styles.subtitle}>
               Paste a TMDB link to auto-fetch metadata, official trailer, and multi-region Watch Providers. Leave the Full-Movie URL blank for Partner OTT titles.
@@ -264,12 +270,13 @@ export default function AdminClient({
                 {loading ? "Fetching from TMDB..." : "Add Film to Screen9"}
               </button>
             </form>
+            </div>
           </div>
         )}
 
         {activeTab === "manage_movies" && !editingMovie && (
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "16px", maxWidth: "720px" }}>
+          <div className={styles.contentInner}>
+            <div className={styles.sectionHeader}>
               <div>
                 <h1 className={styles.title}>Manage Catalog</h1>
                 <p className={styles.subtitle}>Edit curator notes, official embed links, or sync missing TMDB metadata.</p>
@@ -278,7 +285,6 @@ export default function AdminClient({
                 type="button"
                 disabled={loading}
                 className={styles.secondaryButton}
-                style={{ display: "inline-flex", alignItems: "center", gap: "8px", whiteSpace: "nowrap" }}
                 onClick={async () => {
                   setLoading(true);
                   clearMessages();
@@ -351,7 +357,8 @@ export default function AdminClient({
         )}
 
         {activeTab === "manage_movies" && editingMovie && (
-          <div className={styles.card}>
+          <div className={styles.contentInner}>
+            <div className={styles.card}>
             <h1 className={styles.title}>Edit: {editingMovie.title}</h1>
             <p className={styles.subtitle}>Update playback source, curator note, or metadata.</p>
 
@@ -437,11 +444,12 @@ export default function AdminClient({
                 </button>
               </div>
             </form>
+            </div>
           </div>
         )}
 
         {activeTab === "manage_categories" && (
-          <div>
+          <div className={styles.contentInner}>
             <h1 className={styles.title}>Categories</h1>
             <p className={styles.subtitle}>Create or remove curated categories.</p>
 
