@@ -94,6 +94,43 @@ function extractOfficialTrailer(videos: any): string | null {
   return preferred?.key ? `https://www.youtube.com/watch?v=${preferred.key}` : null;
 }
 
+function resolveCountryName(detailsData: any): string | null {
+  if (detailsData.production_countries?.length > 0 && detailsData.production_countries[0].name) {
+    return detailsData.production_countries[0].name;
+  }
+  const originCode = detailsData.origin_country?.[0];
+  if (originCode) {
+    try {
+      const displayNames = new Intl.DisplayNames(["en"], { type: "region" });
+      return displayNames.of(originCode) || originCode;
+    } catch {
+      return originCode;
+    }
+  }
+  return null;
+}
+
+function extractCleanLanguages(detailsData: any): string[] {
+  const langs: string[] = [];
+  if (Array.isArray(detailsData.spoken_languages)) {
+    for (const l of detailsData.spoken_languages) {
+      if (l?.english_name && l.english_name !== "No Language") {
+        langs.push(l.english_name);
+      }
+    }
+  }
+  if (langs.length === 0 && detailsData.original_language) {
+    try {
+      const displayNames = new Intl.DisplayNames(["en"], { type: "language" });
+      const name = displayNames.of(detailsData.original_language);
+      if (name) langs.push(name);
+    } catch {
+      // ignore
+    }
+  }
+  return Array.from(new Set(langs));
+}
+
 export async function addMovie(formData: FormData) {
   const tmdbUrl = (formData.get("tmdbUrl") as string)?.trim();
   const videoUrl = (formData.get("videoUrl") as string)?.trim() || "";
@@ -142,15 +179,14 @@ export async function addMovie(formData: FormData) {
 
   const releaseYear = detailsData.release_date ? parseInt(detailsData.release_date.split("-")[0], 10) : null;
   const autoPeriod = releaseYear ? `${Math.floor(releaseYear / 10) * 10}s` : null;
-  const autoCountry = detailsData.production_countries?.length > 0 ? detailsData.production_countries[0].name : null;
+  const autoCountry = resolveCountryName(detailsData);
 
   const tmdbGenres = detailsData.genres?.map((g: any) => g.name) || [];
-  const tmdbKeywords = detailsData.keywords?.keywords?.map((k: any) => k.name) || [];
-  const tmdbLanguages = detailsData.spoken_languages?.map((l: any) => l.english_name) || [];
-  const autoTags = Array.from(new Set([...tmdbGenres, ...tmdbKeywords, ...tmdbLanguages]));
+  const tmdbLanguages = extractCleanLanguages(detailsData);
 
+  // Keep tags clean: curator manual tags + spoken languages (no noisy raw TMDB keywords or duplicate genres)
   const manualTags = manualTagsStr ? manualTagsStr.split(",").map((t) => t.trim()).filter(Boolean) : [];
-  const finalTags = Array.from(new Set([...manualTags, ...autoTags]));
+  const finalTags = Array.from(new Set([...manualTags, ...tmdbLanguages]));
 
   const autoTrailerUrl = extractOfficialTrailer(detailsData.videos);
   const watchProviders = extractWatchProviders(detailsData["watch/providers"]?.results);
@@ -291,4 +327,51 @@ export async function deleteCategory(id: string) {
     throw new Error("Failed to delete category: " + error.message);
   }
   return { success: true };
+}
+
+export async function syncAllMoviesFromTmdb() {
+  const tmdbKey = process.env.NEXT_PUBLIC_TMDB_API_KEY;
+  if (!tmdbKey) throw new Error("TMDB API key is missing in .env.local");
+
+  const supabase = getAdminSupabase();
+  const { data: movies, error } = await supabase.from("movies").select("*");
+  if (error || !movies) throw new Error("Failed to fetch movies: " + error?.message);
+
+  let updatedCount = 0;
+
+  for (const movie of movies) {
+    if (!movie.tmdb_id) continue;
+    const res = await fetch(
+      `https://api.themoviedb.org/3/movie/${movie.tmdb_id}?api_key=${tmdbKey}&append_to_response=credits,videos,watch/providers`
+    );
+    const detailsData = await res.json();
+    if (detailsData.success === false) continue;
+
+    const releaseYear = detailsData.release_date
+      ? parseInt(detailsData.release_date.split("-")[0], 10)
+      : movie.release_year;
+    const autoPeriod = releaseYear ? `${Math.floor(releaseYear / 10) * 10}s` : null;
+    const autoCountry = resolveCountryName(detailsData);
+    const tmdbGenres = detailsData.genres?.map((g: any) => g.name) || movie.genres || [];
+    const tmdbLanguages = extractCleanLanguages(detailsData);
+    const autoTrailerUrl = extractOfficialTrailer(detailsData.videos);
+    const watchProviders = extractWatchProviders(detailsData["watch/providers"]?.results);
+
+    await supabase
+      .from("movies")
+      .update({
+        release_year: releaseYear,
+        country: movie.country?.trim() || autoCountry,
+        period: movie.period?.trim() || autoPeriod,
+        genres: tmdbGenres,
+        tags: tmdbLanguages,
+        trailer_url: movie.trailer_url || autoTrailerUrl,
+        watch_providers: watchProviders,
+      })
+      .eq("id", movie.id);
+
+    updatedCount++;
+  }
+
+  return { success: true, updatedCount };
 }

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { addMovie, deleteMovie, updateMovie } from "./actions";
+import { addMovie, deleteMovie, syncAllMoviesFromTmdb, updateMovie } from "./actions";
 import styles from "./admin.module.css";
-import { Trash2, Edit, PlusCircle, ListVideo, Tags } from "lucide-react";
+import { Trash2, Edit, PlusCircle, ListVideo, Tags, RefreshCw } from "lucide-react";
 import { getWatchMode } from "@/utils/movieHelpers";
 
 type Tab = "add_movie" | "manage_movies" | "manage_categories";
@@ -269,8 +269,34 @@ export default function AdminClient({
 
         {activeTab === "manage_movies" && !editingMovie && (
           <div>
-            <h1 className={styles.title}>Manage Catalog</h1>
-            <p className={styles.subtitle}>Edit curator notes, official embed links, or remove titles.</p>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "16px", maxWidth: "720px" }}>
+              <div>
+                <h1 className={styles.title}>Manage Catalog</h1>
+                <p className={styles.subtitle}>Edit curator notes, official embed links, or sync missing TMDB metadata.</p>
+              </div>
+              <button
+                type="button"
+                disabled={loading}
+                className={styles.secondaryButton}
+                style={{ display: "inline-flex", alignItems: "center", gap: "8px", whiteSpace: "nowrap" }}
+                onClick={async () => {
+                  setLoading(true);
+                  clearMessages();
+                  try {
+                    const res = await syncAllMoviesFromTmdb();
+                    setMessage(`Synced TMDB metadata (country, era, genres, languages, trailers, providers) for ${res.updatedCount} films. Refreshing...`);
+                    window.location.reload();
+                  } catch (err: any) {
+                    setError(err.message);
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+              >
+                <RefreshCw size={14} />
+                {loading ? "Syncing..." : "Sync All TMDB"}
+              </button>
+            </div>
 
             {movies.length === 0 ? (
               <p className={styles.empty}>No films in database yet.</p>

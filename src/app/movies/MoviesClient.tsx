@@ -9,29 +9,66 @@ import MoreInfoModal from "@/components/MoreInfoModal";
 import CustomSelect from "@/components/CustomSelect";
 import { getWatchMode } from "@/utils/movieHelpers";
 
+function normalizeValue(val?: string | null): string {
+  return (val || "").trim();
+}
+
 export default function MoviesClient({ initialMovies }: { initialMovies: any[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const categories = useMemo(
-    () => Array.from(new Set(initialMovies.map((m) => m.category).filter(Boolean))).sort(),
-    [initialMovies]
-  );
-  const countries = useMemo(
-    () => Array.from(new Set(initialMovies.map((m) => m.country).filter(Boolean))).sort(),
-    [initialMovies]
-  );
-  const periods = useMemo(
-    () => Array.from(new Set(initialMovies.map((m) => m.period).filter(Boolean))).sort(),
-    [initialMovies]
-  );
-  const tags = useMemo(() => {
-    const allTags = initialMovies.flatMap((m) => m.tags || []);
-    return Array.from(new Set(allTags)).sort();
+  // Count helpers for clean filter dropdown labels (e.g. "India (8)")
+  const countryOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    initialMovies.forEach((m) => {
+      const c = normalizeValue(m.country);
+      if (c) counts.set(c, (counts.get(c) || 0) + 1);
+    });
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([name, count]) => ({ value: name, label: `${name} (${count})` }));
+  }, [initialMovies]);
+
+  const genreOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    initialMovies.forEach((m) => {
+      const movieGenres = Array.isArray(m.genres) && m.genres.length > 0 ? m.genres : m.category ? [m.category] : [];
+      movieGenres.forEach((g: string) => {
+        const clean = normalizeValue(g);
+        if (clean) counts.set(clean, (counts.get(clean) || 0) + 1);
+      });
+    });
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([name, count]) => ({ value: name, label: `${name} (${count})` }));
+  }, [initialMovies]);
+
+  const periodOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    initialMovies.forEach((m) => {
+      const p = normalizeValue(m.period) || (m.release_year ? `${Math.floor(m.release_year / 10) * 10}s` : "");
+      if (p) counts.set(p, (counts.get(p) || 0) + 1);
+    });
+    return Array.from(counts.entries())
+      .sort((a, b) => b[0].localeCompare(a[0]))
+      .map(([name, count]) => ({ value: name, label: `${name} (${count})` }));
+  }, [initialMovies]);
+
+  const tagOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    initialMovies.forEach((m) => {
+      (m.tags || []).forEach((t: string) => {
+        const clean = normalizeValue(t);
+        if (clean) counts.set(clean, (counts.get(clean) || 0) + 1);
+      });
+    });
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([name, count]) => ({ value: name, label: `${name} (${count})` }));
   }, [initialMovies]);
 
   const currentMode = searchParams.get("mode") || "";
-  const currentCategory = searchParams.get("category") || "";
+  const currentGenre = searchParams.get("genre") || searchParams.get("category") || "";
   const currentCountry = searchParams.get("country") || "";
   const currentPeriod = searchParams.get("period") || "";
   const currentTag = searchParams.get("tag") || "";
@@ -41,16 +78,35 @@ export default function MoviesClient({ initialMovies }: { initialMovies: any[] }
       const mode = getWatchMode(m);
       if (currentMode === "free" && mode !== "embed" && mode !== "native") return false;
       if (currentMode === "ott" && mode !== "ott") return false;
-      if (currentCategory && m.category !== currentCategory) return false;
-      if (currentCountry && m.country !== currentCountry) return false;
-      if (currentPeriod && m.period !== currentPeriod) return false;
-      if (currentTag && !(m.tags || []).includes(currentTag)) return false;
+
+      if (currentCountry) {
+        if (normalizeValue(m.country).toLowerCase() !== currentCountry.toLowerCase()) return false;
+      }
+
+      if (currentGenre) {
+        const movieGenres = Array.isArray(m.genres) && m.genres.length > 0 ? m.genres : m.category ? [m.category] : [];
+        const match = movieGenres.some((g: string) => normalizeValue(g).toLowerCase() === currentGenre.toLowerCase());
+        if (!match && normalizeValue(m.category).toLowerCase() !== currentGenre.toLowerCase()) return false;
+      }
+
+      if (currentPeriod) {
+        const effectivePeriod =
+          normalizeValue(m.period) || (m.release_year ? `${Math.floor(m.release_year / 10) * 10}s` : "");
+        if (effectivePeriod.toLowerCase() !== currentPeriod.toLowerCase()) return false;
+      }
+
+      if (currentTag) {
+        const match = (m.tags || []).some((t: string) => normalizeValue(t).toLowerCase() === currentTag.toLowerCase());
+        if (!match) return false;
+      }
+
       return true;
     });
-  }, [initialMovies, currentMode, currentCategory, currentCountry, currentPeriod, currentTag]);
+  }, [initialMovies, currentMode, currentGenre, currentCountry, currentPeriod, currentTag]);
 
   const updateFilter = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
+    if (key === "genre") params.delete("category");
     if (value) params.set(key, value);
     else params.delete(key);
     const qs = params.toString();
@@ -58,7 +114,7 @@ export default function MoviesClient({ initialMovies }: { initialMovies: any[] }
   };
 
   const hasFilters = Boolean(
-    currentMode || currentCategory || currentCountry || currentPeriod || currentTag
+    currentMode || currentGenre || currentCountry || currentPeriod || currentTag
   );
 
   return (
@@ -101,10 +157,16 @@ export default function MoviesClient({ initialMovies }: { initialMovies: any[] }
           <CustomSelect
             value={currentCountry}
             onChange={(val) => updateFilter("country", val)}
-            options={[
-              { value: "", label: "All Countries" },
-              ...countries.map((c) => ({ value: c as string, label: c as string })),
-            ]}
+            options={[{ value: "", label: "All Countries" }, ...countryOptions]}
+          />
+        </div>
+
+        <div className={styles.filterGroup}>
+          <label>Genre</label>
+          <CustomSelect
+            value={currentGenre}
+            onChange={(val) => updateFilter("genre", val)}
+            options={[{ value: "", label: "All Genres" }, ...genreOptions]}
           />
         </div>
 
@@ -113,34 +175,16 @@ export default function MoviesClient({ initialMovies }: { initialMovies: any[] }
           <CustomSelect
             value={currentPeriod}
             onChange={(val) => updateFilter("period", val)}
-            options={[
-              { value: "", label: "All Eras" },
-              ...periods.map((p) => ({ value: p as string, label: p as string })),
-            ]}
+            options={[{ value: "", label: "All Eras" }, ...periodOptions]}
           />
         </div>
 
         <div className={styles.filterGroup}>
-          <label>Category</label>
-          <CustomSelect
-            value={currentCategory}
-            onChange={(val) => updateFilter("category", val)}
-            options={[
-              { value: "", label: "All Categories" },
-              ...categories.map((c) => ({ value: c as string, label: c as string })),
-            ]}
-          />
-        </div>
-
-        <div className={styles.filterGroup}>
-          <label>Tag / Collection</label>
+          <label>Language / Collection</label>
           <CustomSelect
             value={currentTag}
             onChange={(val) => updateFilter("tag", val)}
-            options={[
-              { value: "", label: "All Tags" },
-              ...tags.map((t) => ({ value: t as string, label: t as string })),
-            ]}
+            options={[{ value: "", label: "All Languages & Tags" }, ...tagOptions]}
           />
         </div>
 
@@ -163,12 +207,14 @@ export default function MoviesClient({ initialMovies }: { initialMovies: any[] }
                 ? "Free to Watch"
                 : currentCountry
                 ? `${currentCountry} Cinema`
+                : currentGenre
+                ? `${currentGenre} Films`
                 : "Film Index"}
             </h1>
             <span className={styles.countBadge}>{filteredMovies.length} FILMS</span>
           </div>
           <p className={styles.subtitle}>
-            Curated across countries, decades, and languages. Click any title for curator notes, trailer, or full playback.
+            Curated across countries, decades, genres, and languages. Click any title for curator notes, trailer, or full playback.
           </p>
         </div>
 
