@@ -45,8 +45,10 @@ Do **not** limit to YouTube and Vimeo. Search across the internet for legal, emb
   - Dailymotion (verified/official studio channels only)
   - Wikimedia Commons (public domain video files)
   - Official National Film Archives (e.g., NFB Canada, Mosfilm, NFDC/Cinemas of India, BFI, Library of Congress)
-- **Strictly Avoid:** Dodgy/pirate streaming sites, popup/ad-heavy mirror sites, or random unofficial re-uploads.
-- **English Subtitles Priority (Non-English Movies):** When a non-English movie has multiple official/licensed free uploads (e.g., on YouTube), **always prefer the version with built-in English subtitles** (hardcoded or official English CC track), because YouTube embeds often omit English from Auto-translate.
+- **Strictly Avoid:** Dodgy/pirate streaming sites, popup/ad-heavy mirror sites, or brand-new/low-view unofficial re-uploads.
+- **Established Unofficial YouTube Exception:** Official studio/distributor channels are preferred, **but** if an older YouTube upload (uploaded years ago with considerable views) has **English audio or English subtitles** (especially when official uploads lack English subs), it is allowed.
+- **English Audio / Subtitles Top Priority:** Always give **top priority** to movie and trailer links that have **English audio** or **built-in English subtitles/captions** (hardcoded or official English CC track), because YouTube embeds often omit English from Auto-translate.
+- **Official Trailers Only:** Always verify trailers are from official studio, distributor, or cinema channels (never clickbait/promotional event uploads).
 
 ### Step 3: Save Queue & Show a Simple Table
 1. Save verified results to `movie-queue.json` at the project root for the Movie Adder agent.

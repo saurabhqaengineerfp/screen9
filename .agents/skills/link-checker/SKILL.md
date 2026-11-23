@@ -21,12 +21,12 @@ This checks:
 - **Free Embedded Movies (`video_url`):** Uses YouTube/Vimeo oEmbed APIs and HTTP status checks to confirm the video is still live and embeddable.
 - **Streaming Provider Links (`watch_providers`):** Checks direct `web_url` links and flags definite dead links (`404`, `410`, or unreachable domains), while ignoring harmless bot-blocks (`403`/`405`) so working links are never wrongly removed.
 
-### Step 2: Auto-Remove Broken Streaming Links (When Approved or Requested)
+### Step 2: Auto-Remove Broken Streaming Links & Replenish Deleted Free Movies (When Approved or Requested)
 ```bash
 node .agents/skills/link-checker/scripts/check_links.mjs --fix
 ```
 - Removes any dead `404`/`410` streaming provider entries from `watch_providers` in Supabase so users never click a broken link.
-- Reports any broken free-embed full movies so the user can decide whether to replace the link or switch the movie to Trailer + OTT mode.
+- **Auto-Replenish Deleted Free Movies:** If any free-embed full movie (`video_url` on YouTube, Vimeo, Dailymotion, or Archive.org) is broken/deleted, automatically search the web for a replacement working embeddable link (prioritizing **English audio or English subtitles**; official channels preferred, or established multi-year high-view YouTube uploads if needed), verify it via oEmbed, and update `video_url` in Supabase (or switch the movie to `ott` mode if no working copy exists).
 
 ### Step 3: Present a Short Summary
 - List total movies scanned, total broken links found, and what was cleaned up.
