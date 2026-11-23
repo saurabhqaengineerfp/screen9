@@ -45,15 +45,19 @@ Do **not** limit to YouTube and Vimeo. Search across the internet for legal, emb
   - Dailymotion (verified/official studio channels only)
   - Wikimedia Commons (public domain video files)
   - Official National Film Archives (e.g., NFB Canada, Mosfilm, NFDC/Cinemas of India, BFI, Library of Congress)
-- **Strictly Avoid:** Dodgy/pirate streaming sites, popup/ad-heavy mirror sites, or brand-new/low-view unofficial re-uploads.
-- **Established Unofficial YouTube Exception:** Official studio/distributor channels are preferred, **but** if an older YouTube upload (uploaded years ago with considerable views) has **English audio or English subtitles** (especially when official uploads lack English subs), it is allowed.
-- **English Audio / Subtitles Top Priority (ALWAYS Verify Real Caption Tracks!):**
-  - **NEVER rely only on Google web search or video titles** to check for YouTube copies or English subtitles! Many official YouTube uploads have real English CC without mentioning "English Subtitles" in the title (and some clickbait titles say "English Subtitles" when they only have Hindi auto-captions).
-  - Always run the direct YouTube inspector script for every movie:
+- **Strictly Avoid:** Dodgy/pirate streaming sites, popup/ad-heavy mirror sites, trailers/clips disguised as full movies, chopped/cut edits, or small/low-view unofficial channels.
+- **Strict Unofficial YouTube Thresholds (ALL Required):** Official studio/distributor channels are preferred. An unofficial channel upload may ONLY be chosen (e.g., if it has real English subtitles when official channels don't) if **ALL 4** conditions are strictly met:
+  1. **Exact Runtime Match:** Video duration matches the official TMDB runtime within **±5–8 minutes** (NEVER accept trailers, clips, or heavily chopped cuts).
+  2. **Channel Size:** Channel has **at least 200,000 subscribers** (`>= 200k` to millions).
+  3. **Video Views:** Video has **at least 500,000 views** (`>= 500k` to millions).
+  4. **Established Age:** Uploaded years ago (`>= 1 year`).
+- **English Audio / Subtitles Top Priority (ALWAYS Verify Real Caption Tracks & Runtime!):**
+  - **NEVER rely only on Google web search, oEmbed, or video titles** (oEmbed does not return duration, views, or subscribers!).
+  - Always run the strict YouTube verifier script passing the movie's TMDB runtime:
     ```bash
-    node .agents/skills/movie-finder/scripts/find_youtube_movie.mjs "Movie Title Year"
+    node .agents/skills/movie-finder/scripts/find_youtube_movie.mjs --runtime <TMDB_MINUTES> "Movie Title Year"
     ```
-  - This searches YouTube directly (including YouTube's native **Subtitles/CC** filter), filters to real full-length movies, verifies `playableInEmbed`, and inspects real `captionTracks` (`en:manual`), view count, and upload age.
+  - This automatically rejects trailers, chopped versions, and unofficial channels under 200k subs / 500k views, while checking YouTube's native **Subtitles/CC** filter and real `captionTracks` (`en:manual`).
 - **Official Trailers Only:** Always verify trailers are from official studio, distributor, or cinema channels (never clickbait/promotional event uploads).
 
 ### Step 3: Save Queue & Show a Simple Table

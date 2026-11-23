@@ -1,23 +1,59 @@
 #!/usr/bin/env node
 /**
- * Direct YouTube Full-Movie & Real English-Subtitle Finder for Screen9
+ * Strict Direct YouTube Full-Movie & Real English-Subtitle Finder for Screen9
  *
- * Searches YouTube directly using BOTH standard search AND YouTube's native
- * Subtitles/CC filter (&sp=EgIoAQ%253D%253D), filters to full-length movies
- * whose title matches the requested movie, and inspects each candidate's real
- * YouTube player metadata:
- *   - playableInEmbed (guarantees it actually plays embedded on Screen9)
- *   - real captionTracks (detects genuine manual English CC vs auto-generated Hindi)
- *   - exact viewCount, publishDate, duration, and channel name
+ * Enforces hard quality & integrity guardrails so trailers, short clips, chopped edits,
+ * and tiny/spam unofficial channels can NEVER be selected:
+ *   1. Exact Duration Match: Must match official TMDB runtime within ±8 minutes
+ *      (accounts for 4% PAL 25fps speedup on Indian films while rejecting trailers & chopped cuts).
+ *   2. Real Caption Track Inspection: Searches YouTube directly (including YouTube's
+ *      native Subtitles/CC filter) and checks real `captionTracks` for `en:manual`.
+ *   3. Official vs Unofficial Channel Rules:
+ *      - Recognized official studio/distributor channels are trusted once duration matches.
+ *      - Unofficial channels are ONLY allowed if ALL of these hold:
+ *          * Duration matches official runtime (within ±8 min)
+ *          * Channel has >= 200,000 subscribers
+ *          * Video has >= 500,000 views
+ *          * Video is established (uploaded >= 1 year ago)
  *
  * Usage:
- *   node .agents/skills/movie-finder/scripts/find_youtube_movie.mjs "Manorama Six Feet Under" "Aligarh"
+ *   node .agents/skills/movie-finder/scripts/find_youtube_movie.mjs --runtime 137 "Manorama Six Feet Under 2007"
  */
 
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+const OFFICIAL_CHANNEL_PATTERNS = [
+  /shemaroo/i,
+  /eros/i,
+  /nh\s*(studioz|bolly)/i,
+  /drj\s*records/i,
+  /zee\s*(studios|cinema|music|bollywood)/i,
+  /goldmines/i,
+  /ultra\s*(bollywood|movie|media)/i,
+  /rajshri/i,
+  /t-series/i,
+  /yrf|yash\s*raj/i,
+  /dharma/i,
+  /nfdc|cinemas\s*of\s*india/i,
+  /balaji/i,
+  /star\s*studios/i,
+  /sony\s*(liv|pictures|music)/i,
+  /utv/i,
+  /viacom18|jiocinema/i,
+  /pen\s*movies/i,
+  /tips\s*(official|films)/i,
+  /venus\s*movies/i,
+  /mosfilm/i,
+  /nfb/i,
+  /bfi/i,
+];
+
+function isOfficialChannel(channelName) {
+  return OFFICIAL_CHANNEL_PATTERNS.some((re) => re.test(channelName || ""));
+}
 
 function parseLengthToSeconds(str) {
   if (!str) return 0;
@@ -28,8 +64,30 @@ function parseLengthToSeconds(str) {
   return parts[0] || 0;
 }
 
+function parseCompactCount(str) {
+  if (!str) return 0;
+  const clean = str.replace(/,/g, "").trim();
+  const m = clean.match(/([\d.]+)\s*([KMB])?/i);
+  if (!m) return 0;
+  const num = parseFloat(m[1]);
+  const unit = (m[2] || "").toUpperCase();
+  if (unit === "B") return Math.round(num * 1_000_000_000);
+  if (unit === "M") return Math.round(num * 1_000_000);
+  if (unit === "K") return Math.round(num * 1_000);
+  return Math.round(num);
+}
+
+function parseAgeYears(publishedText) {
+  if (!publishedText) return 0;
+  const s = publishedText.toLowerCase();
+  const y = s.match(/(\d+)\s*(y|year)/);
+  if (y) return parseInt(y[1], 10);
+  const mo = s.match(/(\d+)\s*(mo|month)/);
+  if (mo) return parseInt(mo[1], 10) / 12;
+  return 0;
+}
+
 function titleMatchesMovie(videoTitle, movieQuery) {
-  // Strip optional 4-digit year from query to get core movie words
   const core = movieQuery
     .replace(/\b(19\d{2}|20\d{2})\b/g, "")
     .toLowerCase()
@@ -39,9 +97,21 @@ function titleMatchesMovie(videoTitle, movieQuery) {
 
   if (core.length === 0) return true;
   const vt = (videoTitle || "").toLowerCase().replace(/[^a-z0-9\s]/g, " ");
-  // Require at least the first significant word (or >=60% of significant words) to match
+  // Reject obvious trailers/promos/reviews/songs immediately
+  if (/\b(trailer|teaser|promo|review|reaction|explained|interview|making\s+of|in\s+\d+\s+min)\b/i.test(vt)) {
+    return false;
+  }
   const matched = core.filter((w) => new RegExp(`\\b${w}\\b`).test(vt));
   return matched.length >= Math.max(1, Math.ceil(core.length * 0.6));
+}
+
+function durationMatchesRuntime(durationMin, expectedRuntimeMin) {
+  // Absolute floor: never accept anything under 55 min unless the film itself is short
+  const minFloor = expectedRuntimeMin ? Math.min(55, expectedRuntimeMin - 5) : 60;
+  if (!durationMin || durationMin < minFloor) return false;
+  if (!expectedRuntimeMin) return true;
+  // Allow ±8 minutes tolerance (handles PAL 25fps 4% speedup while rejecting chopped cuts)
+  return Math.abs(durationMin - expectedRuntimeMin) <= 8;
 }
 
 export async function searchYouTubeRaw(query, { ccOnly = false, limit = 15 } = {}) {
@@ -70,14 +140,19 @@ export async function searchYouTubeRaw(query, { ccOnly = false, limit = 15 } = {
       if (!seen.has(v.videoId)) {
         seen.add(v.videoId);
         const lengthText = v.lengthText?.simpleText || "";
+        const lengthSeconds = parseLengthToSeconds(lengthText);
         results.push({
           id: v.videoId,
           title: v.title?.runs?.map((r) => r.text).join("") || "",
           channel: v.ownerText?.runs?.[0]?.text || "",
+          channelUrl: v.ownerText?.runs?.[0]?.navigationEndpoint?.browseEndpoint?.canonicalBaseUrl || null,
           lengthText,
-          lengthSeconds: parseLengthToSeconds(lengthText),
+          lengthSeconds,
+          durationMin: Math.round(lengthSeconds / 60),
           viewsText: v.viewCountText?.simpleText || "",
+          viewCount: parseCompactCount(v.viewCountText?.simpleText || ""),
           publishedText: v.publishedTimeText?.simpleText || "",
+          ageYears: parseAgeYears(v.publishedTimeText?.simpleText || ""),
           badges: (v.badges || []).map((b) => b.metadataBadgeRenderer?.label).filter(Boolean),
         });
       }
@@ -103,6 +178,16 @@ export async function inspectYouTubeVideo(videoId) {
     pr = JSON.parse(prMatch[1]);
   } catch {
     return { id: videoId, playable: false, error: "Invalid playerResponse JSON" };
+  }
+
+  // Extract subscriber count from ytInitialData if present on watch page
+  let subscriberCount = 0;
+  const subMatch = html.match(/"subscriberCountText":\{"accessibility":\{"accessibilityData":\{"label":"([^"]+)"/);
+  if (subMatch) {
+    subscriberCount = parseCompactCount(subMatch[1]);
+  } else {
+    const subSimple = html.match(/"subscriberCountText":\{"simpleText":"([^"]+)"/);
+    if (subSimple) subscriberCount = parseCompactCount(subSimple[1]);
   }
 
   const vd = pr.videoDetails || {};
@@ -140,6 +225,8 @@ export async function inspectYouTubeVideo(videoId) {
     embedUrl: `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&fs=1&rel=0&playsinline=1&vq=hd1080`,
     title: vd.title || "",
     channel: vd.author || "",
+    officialChannel: isOfficialChannel(vd.author || ""),
+    subscriberCount,
     lengthSeconds,
     durationMin: Math.round(lengthSeconds / 60),
     viewCount,
@@ -154,7 +241,32 @@ export async function inspectYouTubeVideo(videoId) {
   };
 }
 
-export async function findBestYouTubeMovie(query, minMinutes = 50) {
+function passesQualityGate(info, expectedRuntimeMin) {
+  if (!info.playableInEmbed) return { ok: false, reason: "Not embeddable" };
+  if (!durationMatchesRuntime(info.durationMin, expectedRuntimeMin)) {
+    return {
+      ok: false,
+      reason: `Duration ${info.durationMin}m does not match expected ${expectedRuntimeMin || ">=60"}m (±8m)`,
+    };
+  }
+  // Official channels pass once duration & embeddability match
+  if (info.officialChannel) return { ok: true, reason: "Official studio/distributor channel" };
+
+  // Unofficial channels MUST meet strict thresholds:
+  // >= 200k subscribers, >= 500k views, >= 1 year old
+  if (info.viewCount < 500_000) {
+    return { ok: false, reason: `Unofficial channel video has only ${info.viewCount} views (min 500k)` };
+  }
+  if (info.subscriberCount < 200_000) {
+    return { ok: false, reason: `Unofficial channel has only ${info.subscriberCount} subscribers (min 200k)` };
+  }
+  if (info.ageYears < 1) {
+    return { ok: false, reason: `Unofficial channel upload is too new (${info.ageYears}y, min 1y)` };
+  }
+  return { ok: true, reason: "Established high-view unofficial channel (>=200k subs, >=500k views)" };
+}
+
+export async function findBestYouTubeMovie(query, expectedRuntimeMin = null) {
   const cleanQuery = query.trim();
   const passes = [
     { q: `${cleanQuery} full movie`, ccOnly: true },
@@ -167,7 +279,7 @@ export async function findBestYouTubeMovie(query, minMinutes = 50) {
     const hits = await searchYouTubeRaw(pass.q, { ccOnly: pass.ccOnly, limit: 15 });
     for (const h of hits) {
       if (
-        h.lengthSeconds >= minMinutes * 60 &&
+        durationMatchesRuntime(h.durationMin, expectedRuntimeMin) &&
         titleMatchesMovie(h.title, cleanQuery) &&
         !candidateMap.has(h.id)
       ) {
@@ -176,60 +288,80 @@ export async function findBestYouTubeMovie(query, minMinutes = 50) {
     }
   }
 
-  // Prioritize candidates that already show a CC badge or English subs in title, and cap at 5 to avoid HTTP 429
+  // Prioritize official channels + CC badge + high views, cap at 5 inspections to avoid HTTP 429
   const sortedCandidates = Array.from(candidateMap.values()).sort((a, b) => {
     const score = (c) =>
-      (c.badges.includes("CC") ? 100 : 0) +
-      (/\b(eng(lish)?\s*(sub|subs|subtitle|subtitles|cc))\b/i.test(c.title) ? 50 : 0);
+      (c.badges.includes("CC") ? 200 : 0) +
+      (isOfficialChannel(c.channel) ? 100 : 0) +
+      (c.viewCount >= 500_000 ? 80 : 0) +
+      (/\b(eng(lish)?\s*(sub|subs|subtitle|subtitles|cc))\b/i.test(c.title) ? 40 : 0);
     return score(b) - score(a);
   });
 
   const candidates = sortedCandidates.slice(0, 5);
-  const inspected = [];
+  const accepted = [];
+  const rejected = [];
+
   for (const c of candidates) {
     await sleep(450);
     const info = await inspectYouTubeVideo(c.id);
-    if (info.playableInEmbed && info.lengthSeconds >= minMinutes * 60) {
-      inspected.push(info);
-    } else if (info.error === "HTTP 429") {
-      // Fallback to oEmbed + search metadata when YouTube rate-limits watch pages
+    if (info.error === "HTTP 429") {
+      // Rate-limited fallback: ONLY allow verified official channels via oEmbed (never unverified unofficial channels)
+      if (!isOfficialChannel(c.channel)) {
+        rejected.push({ id: c.id, title: c.title, reason: "Rate-limited; cannot verify unofficial subscriber count" });
+        continue;
+      }
       const oe = await fetch(
         `https://www.youtube.com/oembed?format=json&url=${encodeURIComponent(`https://www.youtube.com/watch?v=${c.id}`)}`
       );
       if (oe.ok) {
-        inspected.push({
+        const fallbackInfo = {
           id: c.id,
           url: `https://www.youtube.com/watch?v=${c.id}`,
           embedUrl: `https://www.youtube.com/embed/${c.id}?autoplay=1&controls=1&fs=1&rel=0&playsinline=1&vq=hd1080`,
           title: c.title,
           channel: c.channel,
+          officialChannel: true,
+          subscriberCount: 0,
           lengthSeconds: c.lengthSeconds,
-          durationMin: Math.round(c.lengthSeconds / 60),
-          viewCount: parseInt((c.viewsText || "").replace(/[^0-9]/g, ""), 10) || 0,
+          durationMin: c.durationMin,
+          viewCount: c.viewCount,
           publishDate: c.publishedText || null,
-          ageYears: 0,
+          ageYears: c.ageYears,
           playable: true,
           playableInEmbed: true,
           hasManualEnglishCC: c.badges.includes("CC"),
           hasAutoEnglishCC: false,
           titleClaimsEnglishSubs: /\b(eng(lish)?\s*(sub|subs|subtitle|subtitles|cc))\b/i.test(c.title),
           captions: [],
-          note: "Verified via search CC badge + oEmbed (watch page rate-limited)",
-        });
+          note: "Official channel verified via search duration + CC badge + oEmbed",
+        };
+        accepted.push(fallbackInfo);
       }
+      continue;
+    }
+
+    const gate = passesQualityGate(info, expectedRuntimeMin);
+    if (gate.ok) {
+      accepted.push({ ...info, gateReason: gate.reason });
+    } else {
+      rejected.push({ id: info.id, channel: info.channel, durationMin: info.durationMin, views: info.viewCount, subs: info.subscriberCount, reason: gate.reason });
     }
   }
 
-  // Ranking: Real Manual English CC > Title Claims English Subs (established) > Views & Age
-  inspected.sort((a, b) => {
+  // Ranking among strictly accepted full-length candidates:
+  // 1. Real manual English CC (+1,000,000)
+  // 2. Official studio channel (+150,000)
+  // 3. Closest to official runtime (+100,000 if within ±3m)
+  // 4. Views & age
+  accepted.sort((a, b) => {
     const score = (x) => {
       let s = 0;
       if (x.hasManualEnglishCC) s += 1_000_000;
-      else if (x.hasAutoEnglishCC) s += 150_000;
-      if (x.titleClaimsEnglishSubs) s += 200_000;
-      if (x.ageYears >= 2) s += 50_000;
-      if (x.viewCount >= 50_000) s += 50_000;
-      s += Math.min(x.viewCount / 1000, 40_000);
+      if (x.officialChannel) s += 150_000;
+      if (expectedRuntimeMin && Math.abs(x.durationMin - expectedRuntimeMin) <= 3) s += 100_000;
+      if (x.titleClaimsEnglishSubs) s += 50_000;
+      s += Math.min(x.viewCount / 1000, 50_000);
       return s;
     };
     return score(b) - score(a);
@@ -237,21 +369,33 @@ export async function findBestYouTubeMovie(query, minMinutes = 50) {
 
   return {
     query: cleanQuery,
-    best: inspected[0] || null,
-    alternatives: inspected.slice(1, 4),
+    expectedRuntimeMin,
+    best: accepted[0] || null,
+    alternatives: accepted.slice(1, 3),
+    rejected,
   };
 }
 
-// CLI entrypoint
+// CLI entrypoint: supports optional `--runtime <minutes>`
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const queries = process.argv.slice(2).filter(Boolean);
+  const args = process.argv.slice(2);
+  let runtimeMin = null;
+  const queries = [];
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--runtime" && args[i + 1]) {
+      runtimeMin = parseInt(args[i + 1], 10) || null;
+      i++;
+    } else if (args[i]) {
+      queries.push(args[i]);
+    }
+  }
   if (queries.length === 0) {
-    console.error('Usage: node find_youtube_movie.mjs "Movie Name Year" ...');
+    console.error('Usage: node find_youtube_movie.mjs [--runtime 137] "Movie Name Year" ...');
     process.exit(1);
   }
   const results = [];
   for (const q of queries) {
-    results.push(await findBestYouTubeMovie(q));
+    results.push(await findBestYouTubeMovie(q, runtimeMin));
   }
   console.log(JSON.stringify(results, null, 2));
 }
