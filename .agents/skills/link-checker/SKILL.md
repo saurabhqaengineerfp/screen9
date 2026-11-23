@@ -26,7 +26,7 @@ This checks:
 node .agents/skills/link-checker/scripts/check_links.mjs --fix
 ```
 - Removes any dead `404`/`410` streaming provider entries from `watch_providers` in Supabase so users never click a broken link.
-- **Auto-Replenish Deleted Free Movies:** If any free-embed full movie (`video_url` on YouTube, Vimeo, Dailymotion, or Archive.org) is broken/deleted, automatically search the web for a replacement working embeddable link (prioritizing **English audio or English subtitles**; official channels preferred, or established multi-year high-view YouTube uploads if needed), verify it via oEmbed, and update `video_url` in Supabase (or switch the movie to `ott` mode if no working copy exists).
+- **Auto-Replenish Deleted Free Movies:** If any free-embed full movie (`video_url` on YouTube, Vimeo, Dailymotion, or Archive.org) is broken/deleted, run `node .agents/skills/movie-finder/scripts/find_youtube_movie.mjs "<Movie Title> <Year>"` (which searches YouTube directly with its native CC filter and verifies real manual English CC tracks + embeddability + views/age) to find the best replacement link and update `video_url` in Supabase (or switch the movie to `ott` mode if no working copy exists).
 
 ### Step 3: Present a Short Summary
 - List total movies scanned, total broken links found, and what was cleaned up.

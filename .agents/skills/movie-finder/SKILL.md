@@ -47,7 +47,13 @@ Do **not** limit to YouTube and Vimeo. Search across the internet for legal, emb
   - Official National Film Archives (e.g., NFB Canada, Mosfilm, NFDC/Cinemas of India, BFI, Library of Congress)
 - **Strictly Avoid:** Dodgy/pirate streaming sites, popup/ad-heavy mirror sites, or brand-new/low-view unofficial re-uploads.
 - **Established Unofficial YouTube Exception:** Official studio/distributor channels are preferred, **but** if an older YouTube upload (uploaded years ago with considerable views) has **English audio or English subtitles** (especially when official uploads lack English subs), it is allowed.
-- **English Audio / Subtitles Top Priority:** Always give **top priority** to movie and trailer links that have **English audio** or **built-in English subtitles/captions** (hardcoded or official English CC track), because YouTube embeds often omit English from Auto-translate.
+- **English Audio / Subtitles Top Priority (ALWAYS Verify Real Caption Tracks!):**
+  - **NEVER rely only on Google web search or video titles** to check for YouTube copies or English subtitles! Many official YouTube uploads have real English CC without mentioning "English Subtitles" in the title (and some clickbait titles say "English Subtitles" when they only have Hindi auto-captions).
+  - Always run the direct YouTube inspector script for every movie:
+    ```bash
+    node .agents/skills/movie-finder/scripts/find_youtube_movie.mjs "Movie Title Year"
+    ```
+  - This searches YouTube directly (including YouTube's native **Subtitles/CC** filter), filters to real full-length movies, verifies `playableInEmbed`, and inspects real `captionTracks` (`en:manual`), view count, and upload age.
 - **Official Trailers Only:** Always verify trailers are from official studio, distributor, or cinema channels (never clickbait/promotional event uploads).
 
 ### Step 3: Save Queue & Show a Simple Table
