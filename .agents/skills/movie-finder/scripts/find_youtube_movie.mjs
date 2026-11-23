@@ -252,18 +252,24 @@ function passesQualityGate(info, expectedRuntimeMin) {
   // Official channels pass once duration & embeddability match
   if (info.officialChannel) return { ok: true, reason: "Official studio/distributor channel" };
 
-  // Unofficial channels MUST meet strict thresholds:
-  // >= 200k subscribers, >= 500k views, >= 1 year old
-  if (info.viewCount < 500_000) {
-    return { ok: false, reason: `Unofficial channel video has only ${info.viewCount} views (min 500k)` };
+  // Unofficial channels: runtime MUST strictly match, plus a strong combined trust signal:
+  //   - >= 200k subs AND >= 500k views AND >= 1y old, OR
+  //   - Proven viral/long-lived upload: >= 1M views AND >= 2y old, OR
+  //   - Established multi-year upload: >= 500k views AND >= 3y old
+  const hasBigChannelAndViews = info.subscriberCount >= 200_000 && info.viewCount >= 500_000 && info.ageYears >= 1;
+  const hasProvenMillionViews = info.viewCount >= 1_000_000 && info.ageYears >= 2;
+  const hasLongLivedHighViews = info.viewCount >= 500_000 && info.ageYears >= 3;
+
+  if (hasBigChannelAndViews || hasProvenMillionViews || hasLongLivedHighViews) {
+    return {
+      ok: true,
+      reason: `Trusted unofficial upload (${info.viewCount.toLocaleString()} views, ${info.ageYears}y old, ${info.subscriberCount.toLocaleString()} subs)`,
+    };
   }
-  if (info.subscriberCount < 200_000) {
-    return { ok: false, reason: `Unofficial channel has only ${info.subscriberCount} subscribers (min 200k)` };
-  }
-  if (info.ageYears < 1) {
-    return { ok: false, reason: `Unofficial channel upload is too new (${info.ageYears}y, min 1y)` };
-  }
-  return { ok: true, reason: "Established high-view unofficial channel (>=200k subs, >=500k views)" };
+  return {
+    ok: false,
+    reason: `Unofficial upload below trust bar (${info.viewCount.toLocaleString()} views, ${info.ageYears}y old, ${info.subscriberCount.toLocaleString()} subs)`,
+  };
 }
 
 export async function findBestYouTubeMovie(query, expectedRuntimeMin = null) {

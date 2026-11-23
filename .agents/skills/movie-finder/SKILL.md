@@ -46,11 +46,12 @@ Do **not** limit to YouTube and Vimeo. Search across the internet for legal, emb
   - Wikimedia Commons (public domain video files)
   - Official National Film Archives (e.g., NFB Canada, Mosfilm, NFDC/Cinemas of India, BFI, Library of Congress)
 - **Strictly Avoid:** Dodgy/pirate streaming sites, popup/ad-heavy mirror sites, trailers/clips disguised as full movies, chopped/cut edits, or small/low-view unofficial channels.
-- **Strict Unofficial YouTube Thresholds (ALL Required):** Official studio/distributor channels are preferred. An unofficial channel upload may ONLY be chosen (e.g., if it has real English subtitles when official channels don't) if **ALL 4** conditions are strictly met:
-  1. **Exact Runtime Match:** Video duration matches the official TMDB runtime within **±5–8 minutes** (NEVER accept trailers, clips, or heavily chopped cuts).
-  2. **Channel Size:** Channel has **at least 200,000 subscribers** (`>= 200k` to millions).
-  3. **Video Views:** Video has **at least 500,000 views** (`>= 500k` to millions).
-  4. **Established Age:** Uploaded years ago (`>= 1 year`).
+- **Unofficial YouTube Trust Gate (Combined Signals):** Official studio/distributor channels are preferred. An unofficial channel upload is allowed **only if** it passes BOTH:
+  1. **Strict Runtime Match (Hard Rule):** Video duration matches the official TMDB runtime within **±5–8 minutes** (NEVER accept trailers, clips, or heavily chopped cuts) AND is embeddable.
+  2. **Strong Combined Trust Signal (Pass any one):**
+     - **Big Channel + High Views:** `>= 200k` subscribers, `>= 500k` views, and `>= 1 year` old, **OR**
+     - **Proven Long-Lived Hit:** `>= 1M` views and `>= 2 years` old, **OR**
+     - **Established Multi-Year Upload:** `>= 500k` views and `>= 3 years` old.
 - **English Audio / Subtitles Top Priority (ALWAYS Verify Real Caption Tracks & Runtime!):**
   - **NEVER rely only on Google web search, oEmbed, or video titles** (oEmbed does not return duration, views, or subscribers!).
   - Always run the strict YouTube verifier script passing the movie's TMDB runtime:
