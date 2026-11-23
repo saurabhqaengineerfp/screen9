@@ -28,6 +28,11 @@
   object-position: center 22%;
   filter: saturate(0.82) contrast(1.06);
   opacity: 0.72;
+  transition: opacity 500ms ease;
+}
+
+.backdropHidden {
+  opacity: 0;
 }
 
 .backdropFallback {
@@ -46,7 +51,7 @@
 }
 
 .heroVideoVisible {
-  opacity: 0.78;
+  opacity: 1;
 }
 
 .heroVideoScale {

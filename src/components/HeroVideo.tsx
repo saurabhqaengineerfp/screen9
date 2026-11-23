@@ -168,7 +168,7 @@ export default function HeroVideo({ movie }: { movie?: any }) {
             fill
             priority
             unoptimized
-            className={styles.backdropImage}
+            className={`${styles.backdropImage} ${videoReady ? styles.backdropHidden : ""}`}
           />
         ) : (
           <div className={styles.backdropFallback} />

@@ -19,9 +19,12 @@ export default async function Home() {
 
   const allMovies = dbMovies || [];
 
+  const heroPool = allMovies.filter((m) => m.trailer_url || m.backdrop_url);
+  const randomPool = heroPool.length > 0 ? heroPool : allMovies;
+
   const heroMovie =
-    allMovies.length > 0
-      ? allMovies[0]
+    randomPool.length > 0
+      ? randomPool[Math.floor(Math.random() * randomPool.length)]
       : {
           title: "Curated World Cinema",
           description:
