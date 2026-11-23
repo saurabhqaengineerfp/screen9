@@ -67,13 +67,13 @@ function parseLengthToSeconds(str) {
 function parseCompactCount(str) {
   if (!str) return 0;
   const clean = str.replace(/,/g, "").trim();
-  const m = clean.match(/([\d.]+)\s*([KMB])?/i);
+  const m = clean.match(/([\d.]+)\s*(billion|million|thousand|[KMB])?/i);
   if (!m) return 0;
   const num = parseFloat(m[1]);
-  const unit = (m[2] || "").toUpperCase();
-  if (unit === "B") return Math.round(num * 1_000_000_000);
-  if (unit === "M") return Math.round(num * 1_000_000);
-  if (unit === "K") return Math.round(num * 1_000);
+  const unit = (m[2] || "").toLowerCase();
+  if (unit === "b" || unit === "billion") return Math.round(num * 1_000_000_000);
+  if (unit === "m" || unit === "million") return Math.round(num * 1_000_000);
+  if (unit === "k" || unit === "thousand") return Math.round(num * 1_000);
   return Math.round(num);
 }
 
