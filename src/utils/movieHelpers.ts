@@ -53,6 +53,18 @@ export function extractDailymotionId(url?: string | null): string | null {
 }
 
 /**
+ * Check if a movie has English Closed Captions / Subtitles available.
+ */
+export function hasEnglishCC(movie: any): boolean {
+  if (!movie) return false;
+  if (movie.has_english_cc === true) return true;
+  if (Array.isArray(movie.tags)) {
+    return movie.tags.some((t: string) => /^eng(lish)?\s*cc$/i.test((t || "").trim()));
+  }
+  return false;
+}
+
+/**
  * Determine effective watch mode for a movie (backwards compatible with legacy rows).
  */
 export function getWatchMode(movie: any): WatchMode {

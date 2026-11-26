@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Play, Info, X, ExternalLink } from "lucide-react";
+import { Play, Info, X, ExternalLink, Captions } from "lucide-react";
 import styles from "./MoreInfoModal.module.css";
 import {
   formatRuntime,
@@ -11,6 +11,7 @@ import {
   getRegionProviders,
   getTmdbWatchUrl,
   getWatchMode,
+  hasEnglishCC,
   SUPPORTED_REGIONS,
 } from "@/utils/movieHelpers";
 
@@ -72,6 +73,7 @@ export default function MoreInfoModal({
 
   const mode = getWatchMode(movie);
   const isFree = mode === "embed" || mode === "native";
+  const engCC = hasEnglishCC(movie);
   const runtime = formatRuntime(movie);
   const { data: regionProviders } = getRegionProviders(movie.watch_providers, region);
   const streamProviders = [
@@ -142,6 +144,12 @@ export default function MoreInfoModal({
                   </span>
                 ) : (
                   <span className={styles.ottPill}>PARTNER OTT</span>
+                )}
+                {engCC && (
+                  <span className={styles.ccPill} title="English Subtitles (CC) Available">
+                    <Captions size={13} className={styles.ccIcon} />
+                    ENG CC
+                  </span>
                 )}
                 {movie.release_year && <span>{movie.release_year}</span>}
                 {runtime && <span>{runtime}</span>}

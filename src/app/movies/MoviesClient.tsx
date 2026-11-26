@@ -3,11 +3,11 @@
 import { useMemo } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, Captions } from "lucide-react";
 import styles from "./movies.module.css";
 import MoreInfoModal from "@/components/MoreInfoModal";
 import CustomSelect from "@/components/CustomSelect";
-import { getWatchMode } from "@/utils/movieHelpers";
+import { getWatchMode, hasEnglishCC } from "@/utils/movieHelpers";
 
 function normalizeValue(val?: string | null): string {
   return (val || "").trim();
@@ -286,6 +286,7 @@ export default function MoviesClient({ initialMovies }: { initialMovies: any[] }
             {filteredMovies.map((movie) => {
               const mode = getWatchMode(movie);
               const isFree = mode === "embed" || mode === "native";
+              const engCC = hasEnglishCC(movie);
               return (
                 <MoreInfoModal movie={movie} key={movie.id}>
                   <div className={styles.movieCard} role="button" tabIndex={0}>
@@ -310,6 +311,14 @@ export default function MoviesClient({ initialMovies }: { initialMovies: any[] }
                         <span className={styles.badgeOtt}>OTT</span>
                       )}
                     </div>
+                    {engCC && (
+                      <div className={styles.cardCcBadge} title="English Subtitles (CC) Available" aria-label="English Subtitles Available">
+                        <span className={styles.badgeCc}>
+                          <Captions size={12} className={styles.ccIcon} />
+                          EN
+                        </span>
+                      </div>
+                    )}
                     <div className={styles.movieOverlay}>
                       <h3>{movie.title}</h3>
                       <div className={styles.movieMeta}>

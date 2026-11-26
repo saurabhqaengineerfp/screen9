@@ -125,6 +125,22 @@
   color: var(--fg-secondary);
 }
 
+.ccPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 122, 0, 0.45);
+  background: rgba(0, 0, 0, 0.78);
+  color: #ffffff;
+}
+
+.ccIcon {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
 .amberDot {
   width: 6px;
   height: 6px;

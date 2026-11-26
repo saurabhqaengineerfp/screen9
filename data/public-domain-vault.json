@@ -1,0 +1,221 @@
+{
+  "_schema_version": "1.0",
+  "_description": "Screen9 Public Domain & Geo-Fencing Rights Vault. Tracks movies that are Public Domain globally or in specific countries (e.g. India 60-year rule), plus upcoming classics entering Public Domain soon, so Screen9 can self-host and geo-fence them behind a paywall without re-researching.",
+  "_last_updated": "2026-11-26",
+  "public_domain_now": [
+    {
+      "tmdb_id": 39039,
+      "tmdb_url": "https://www.themoviedb.org/movie/39039",
+      "title": "Awaara",
+      "release_year": 1951,
+      "country": "India",
+      "director": "Raj Kapoor",
+      "runtime_min": 168,
+      "languages": ["Hindi"],
+      "pd_status": "country_only_pd",
+      "pd_eligible_countries": ["IN"],
+      "paywall_safe_regions": ["IN"],
+      "blocked_countries_for_self_host": ["US", "GB", "CA", "AU", "EU"],
+      "pd_entry_dates": {
+        "IN": "2012-01-01",
+        "US": "2047-01-01"
+      },
+      "license_note": "Indian Copyright Act Section 26 (60 years from calendar year after publication). Restored in US under URAA (95-year term).",
+      "underlying_rights_warnings": [
+        "Avoid using modern studio 4K remasters (new restoration copyright); use original/vintage prints if self-hosting.",
+        "Standalone music/lyrics publishing rights may have separate terms from the film recording."
+      ],
+      "current_screen9_mode": "embed",
+      "current_embed_url": "https://www.youtube.com/watch?v=u4mjCJaJe-g",
+      "current_source_channel": "YouTube - Shemaroo Movies",
+      "has_english_subtitles": true,
+      "archive_org_sources": [
+        "https://archive.org/details/AwaaraVOSERajKapoor1951"
+      ],
+      "last_verified_date": "2026-11-26"
+    },
+    {
+      "tmdb_id": 48929,
+      "tmdb_url": "https://www.themoviedb.org/movie/48929",
+      "title": "Shree 420",
+      "release_year": 1955,
+      "country": "India",
+      "director": "Raj Kapoor",
+      "runtime_min": 168,
+      "languages": ["Hindi"],
+      "pd_status": "country_only_pd",
+      "pd_eligible_countries": ["IN"],
+      "paywall_safe_regions": ["IN"],
+      "blocked_countries_for_self_host": ["US", "GB", "CA", "AU", "EU"],
+      "pd_entry_dates": {
+        "IN": "2016-01-01",
+        "US": "2051-01-01"
+      },
+      "license_note": "Public Domain in India since Jan 1, 2016 (60-year film term). Protected in US until Dec 31, 2050 under URAA.",
+      "underlying_rights_warnings": [
+        "Avoid modern studio restorations if self-hosting; use vintage prints.",
+        "Check standalone music composition/lyrics rights if extracting songs separately."
+      ],
+      "current_screen9_mode": "embed",
+      "current_embed_url": "https://www.youtube.com/watch?v=e1zrMsJI8aU",
+      "current_source_channel": "YouTube - Shemaroo",
+      "has_english_subtitles": true,
+      "archive_org_sources": [
+        "https://archive.org/details/shree-420-1955-raj-kapoor",
+        "https://archive.org/details/shree-420-1955-raj-kapoor-nargis-classic-hindi-film"
+      ],
+      "last_verified_date": "2026-11-26"
+    },
+    {
+      "tmdb_id": 41053,
+      "tmdb_url": "https://www.themoviedb.org/movie/41053",
+      "title": "Pyaasa",
+      "release_year": 1957,
+      "country": "India",
+      "director": "Guru Dutt",
+      "runtime_min": 146,
+      "languages": ["Hindi"],
+      "pd_status": "country_only_pd",
+      "pd_eligible_countries": ["IN"],
+      "paywall_safe_regions": ["IN"],
+      "blocked_countries_for_self_host": ["US", "GB", "CA", "AU", "EU"],
+      "pd_entry_dates": {
+        "IN": "2018-01-01",
+        "US": "2053-01-01"
+      },
+      "license_note": "Public Domain in India since Jan 1, 2018 (60-year film term). Protected in US until Dec 31, 2052 under URAA.",
+      "underlying_rights_warnings": [
+        "Do NOT download Ultra's 4K restored Blu-ray/YouTube master for self-hosting (restoration copyright).",
+        "Will need an English .vtt/.srt subtitle track if self-hosted later."
+      ],
+      "current_screen9_mode": "embed",
+      "current_embed_url": "https://www.youtube.com/watch?v=iUasWB2ZPG8",
+      "current_source_channel": "YouTube - Ultra 4K Movies",
+      "has_english_subtitles": false,
+      "archive_org_sources": [
+        "https://archive.org/details/pyaasa-1957-guru-dutt-classic-hindi-film"
+      ],
+      "last_verified_date": "2026-11-26"
+    },
+    {
+      "tmdb_id": 53767,
+      "tmdb_url": "https://www.themoviedb.org/movie/53767",
+      "title": "Kaagaz Ke Phool",
+      "release_year": 1959,
+      "country": "India",
+      "director": "Guru Dutt",
+      "runtime_min": 142,
+      "languages": ["Hindi", "English"],
+      "pd_status": "country_only_pd",
+      "pd_eligible_countries": ["IN"],
+      "paywall_safe_regions": ["IN"],
+      "blocked_countries_for_self_host": ["US", "GB", "CA", "AU", "EU"],
+      "pd_entry_dates": {
+        "IN": "2020-01-01",
+        "US": "2055-01-01"
+      },
+      "license_note": "Public Domain in India since Jan 1, 2020 (60-year film term). Protected in US until Dec 31, 2054 under URAA.",
+      "underlying_rights_warnings": [
+        "Do NOT use Ultra's 4K restored master for self-hosting; use an original/vintage print.",
+        "Will need an English .vtt/.srt subtitle track if self-hosted later."
+      ],
+      "current_screen9_mode": "embed",
+      "current_embed_url": "https://www.youtube.com/watch?v=cdNkR9xiWT4",
+      "current_source_channel": "YouTube - Ultra Classic",
+      "has_english_subtitles": false,
+      "archive_org_sources": [
+        "https://archive.org/details/kagaz-ke-phool"
+      ],
+      "last_verified_date": "2026-11-26"
+    },
+    {
+      "tmdb_id": 80484,
+      "tmdb_url": "https://www.themoviedb.org/movie/80484",
+      "title": "Guide",
+      "release_year": 1965,
+      "country": "India",
+      "director": "Vijay Anand",
+      "runtime_min": 183,
+      "languages": ["Hindi", "English"],
+      "pd_status": "country_only_pd",
+      "pd_eligible_countries": ["IN"],
+      "paywall_safe_regions": ["IN"],
+      "blocked_countries_for_self_host": ["US", "GB", "CA", "AU", "EU"],
+      "pd_entry_dates": {
+        "IN": "2026-01-01",
+        "US": "2061-01-01"
+      },
+      "license_note": "Entered Public Domain in India on Jan 1, 2026 (60-year film term). Protected in US until Dec 31, 2060 under URAA.",
+      "underlying_rights_warnings": [
+        "Adapted from R.K. Narayan's novel 'The Guide' (author passed away in 2001 — literary copyright in India lasts until 2062; verify underlying-work clearance before paywall self-hosting).",
+        "Do NOT use Ultra's 4K restoration for self-hosting; use original print."
+      ],
+      "current_screen9_mode": "embed",
+      "current_embed_url": "https://www.youtube.com/watch?v=u6KfF96f7F0",
+      "current_source_channel": "YouTube - Ultra Movie Parlour",
+      "has_english_subtitles": false,
+      "archive_org_sources": [
+        "https://archive.org/details/guide-1965-dev-anand-waheeda-rehman-vijay-anand-r-k-narayan-classic-hindi-film"
+      ],
+      "last_verified_date": "2026-11-26"
+    }
+  ],
+  "upcoming_public_domain_watchlist": [
+    {
+      "tmdb_id": 26237,
+      "tmdb_url": "https://www.themoviedb.org/movie/26237",
+      "title": "Anand",
+      "release_year": 1971,
+      "country": "India",
+      "director": "Hrishikesh Mukherjee",
+      "pd_status": "upcoming_pd",
+      "pd_entry_dates": {
+        "IN": "2032-01-01",
+        "US": "2067-01-01"
+      },
+      "note": "Enters India Public Domain on Jan 1, 2032 (60-year film term)."
+    },
+    {
+      "tmdb_id": 171492,
+      "tmdb_url": "https://www.themoviedb.org/movie/171492",
+      "title": "Ankur: The Seedling",
+      "release_year": 1974,
+      "country": "India",
+      "director": "Shyam Benegal",
+      "pd_status": "upcoming_pd",
+      "pd_entry_dates": {
+        "IN": "2035-01-01",
+        "US": "2070-01-01"
+      },
+      "note": "Enters India Public Domain on Jan 1, 2035 (60-year film term)."
+    },
+    {
+      "tmdb_id": 22460,
+      "tmdb_url": "https://www.themoviedb.org/movie/22460",
+      "title": "Deewaar",
+      "release_year": 1975,
+      "country": "India",
+      "director": "Yash Chopra",
+      "pd_status": "upcoming_pd",
+      "pd_entry_dates": {
+        "IN": "2036-01-01",
+        "US": "2071-01-01"
+      },
+      "note": "Enters India Public Domain on Jan 1, 2036 (60-year film term)."
+    },
+    {
+      "tmdb_id": 108016,
+      "tmdb_url": "https://www.themoviedb.org/movie/108016",
+      "title": "Trishul",
+      "release_year": 1978,
+      "country": "India",
+      "director": "Yash Chopra",
+      "pd_status": "upcoming_pd",
+      "pd_entry_dates": {
+        "IN": "2039-01-01",
+        "US": "2074-01-01"
+      },
+      "note": "Enters India Public Domain on Jan 1, 2039 (60-year film term)."
+    }
+  ]
+}

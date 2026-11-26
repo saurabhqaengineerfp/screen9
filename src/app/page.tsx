@@ -1,11 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Play, ArrowUpRight } from "lucide-react";
+import { Play, ArrowUpRight, Captions } from "lucide-react";
 import styles from "./page.module.css";
 import HeroVideo from "@/components/HeroVideo";
 import MoreInfoModal from "@/components/MoreInfoModal";
 import { createClient } from "@/utils/supabase/server";
-import { formatRuntime, getWatchMode } from "@/utils/movieHelpers";
+import { formatRuntime, getWatchMode, hasEnglishCC } from "@/utils/movieHelpers";
 
 export const dynamic = "force-dynamic";
 
@@ -65,6 +65,7 @@ export default async function Home() {
   const renderCard = (movie: any) => {
     const mode = getWatchMode(movie);
     const isFree = mode === "embed" || mode === "native";
+    const engCC = hasEnglishCC(movie);
     return (
       <MoreInfoModal movie={movie} key={movie.id}>
         <div className={styles.card} role="button" tabIndex={0}>
@@ -90,6 +91,14 @@ export default async function Home() {
               <span className={styles.badgeOtt}>OTT</span>
             )}
           </div>
+          {engCC && (
+            <div className={styles.cardCcBadge} title="English Subtitles (CC) Available" aria-label="English Subtitles Available">
+              <span className={styles.badgeCc}>
+                <Captions size={12} className={styles.ccIcon} />
+                EN
+              </span>
+            </div>
+          )}
           <div className={styles.cardFooter}>
             <span className={styles.cardTitle}>{movie.title}</span>
             <span className={styles.cardSub}>

@@ -285,7 +285,8 @@ async function main() {
     const country = resolveCountry(details);
     const genres = (details.genres || []).map((g) => g.name);
     const languages = extractLanguages(details);
-    const extraTags = Array.isArray(item.tags) ? item.tags : [];
+    const extraTags = Array.isArray(item.tags) ? [...item.tags] : [];
+    if (item.has_english_subtitles) extraTags.push("Eng CC");
     const finalTags = Array.from(new Set([...extraTags, ...languages]));
     const category = item.category || (genres.length > 0 ? genres[0] : "Curated");
     const director = details.credits?.crew?.find((p) => p.job === "Director")?.name || null;
